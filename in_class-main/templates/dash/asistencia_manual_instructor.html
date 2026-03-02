@@ -1,0 +1,990 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Asistencia manual{% endblock %}
+
+{% block head_extra %}
+<style>
+  :root{
+    --bg:#050816;
+    --text:#e5e7eb;
+    --muted:#9ca3af;
+
+    --grad-a:#0ea5e9;
+    --grad-b:#6366f1;
+
+    --surface:#020617;
+    --surface-soft:#020617;
+    --surface-border:rgba(148,163,184,.35);
+    --surface-glow:rgba(56,189,248,.26);
+
+    --chip-ok:#22c55e;
+    --chip-late:#facc15;
+    --chip-abs:#ef4444;
+  }
+  [data-theme="light"]{
+    --bg:#edf2ff;
+    --text:#020617;
+    --muted:#4b5563;
+
+    --grad-a:#22c55e;
+    --grad-b:#3b82f6;
+
+    --surface:#ffffff;
+    --surface-soft:#ffffff;
+    --surface-border:rgba(148,163,184,.2);
+    --surface-glow:rgba(59,130,246,.22);
+
+    --chip-ok:#16a34a;
+    --chip-late:#ca8a04;
+    --chip-abs:#b91c1c;
+  }
+
+  html, body{
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  #particles-js{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+  }
+
+  .screen{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:1100px;
+    margin:0 auto;
+    padding:32px 16px 32px;
+    height:calc(100vh - 160px);
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(96,165,250,.7) rgba(15,23,42,.9);
+  }
+  .screen::-webkit-scrollbar{ width:6px; }
+  .screen::-webkit-scrollbar-track{
+    background:rgba(15,23,42,.9);
+    border-radius:999px;
+  }
+  .screen::-webkit-scrollbar-thumb{
+    background:linear-gradient(var(--grad-a),var(--grad-b));
+    border-radius:999px;
+  }
+  [data-theme="light"] .screen{
+    scrollbar-color:rgba(37,99,235,.7) rgba(226,232,240,.9);
+  }
+  [data-theme="light"] .screen::-webkit-scrollbar-track{
+    background:rgba(226,232,240,.9);
+  }
+
+  /* HEADER CARD */
+
+  .page-header{
+    margin-bottom:4px;
+  }
+
+  .header-card{
+    position:relative;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:16px;
+    padding:18px 22px;
+    border-radius:24px;
+    background:
+      radial-gradient(circle at 0% 0%, rgba(45,212,191,.22), transparent 55%),
+      radial-gradient(circle at 110% 0%, rgba(129,140,248,.30), transparent 55%),
+      linear-gradient(135deg,#020617 0%,#020617 60%,#020617 100%);
+    border:1px solid rgba(148,163,184,.6);
+    box-shadow:
+      0 26px 52px rgba(0,0,0,.95),
+      0 0 0 1px rgba(15,23,42,1),
+      0 0 40px rgba(56,189,248,.24);
+    overflow:hidden;
+  }
+  [data-theme="light"] .header-card{
+    background:
+      radial-gradient(circle at 0% 0%, rgba(45,212,191,.25), transparent 55%),
+      radial-gradient(circle at 110% 0%, rgba(129,140,248,.28), transparent 55%),
+      linear-gradient(135deg,#1d4ed8,#4f46e5);
+    border-color:rgba(191,219,254,.9);
+    box-shadow:0 20px 40px rgba(15,23,42,.16);
+  }
+  .header-card::before{
+    content:"";
+    position:absolute;
+    inset:-40%;
+    background:
+      radial-gradient(circle at 0 0, rgba(15,23,42,.9), transparent 55%),
+      radial-gradient(circle at 100% 100%, rgba(15,23,42,.75), transparent 55%);
+    pointer-events:none;
+  }
+
+  .header-main,
+  .header-extra{
+    position:relative;
+    z-index:1;
+  }
+
+  .header-main{
+    min-width:260px;
+    max-width:65%;
+  }
+
+  .page-title{
+    margin:0;
+    font-size:20px;
+    font-weight:800;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:#ecfeff;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .page-pill{
+    font-size:11px;
+    padding:3px 9px;
+    border-radius:999px;
+    border:1px solid rgba(45,212,191,.7);
+    color:#a5f3fc;
+    background:rgba(15,23,42,.94);
+  }
+
+  .page-sub{
+    margin:5px 0 0;
+    font-size:13px;
+    color:#e5e7eb;
+    opacity:.96;
+  }
+
+  .meta-row{
+    margin-top:10px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    font-size:11px;
+    color:#e5e7eb;
+  }
+  .meta-chip{
+    padding:3px 8px;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.6);
+    background:rgba(15,23,42,.9);
+  }
+
+  .header-extra{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:8px;
+  }
+
+  .back-btn{
+    border-radius:999px;
+    padding:6px 12px;
+    border:1px solid rgba(148,163,184,.7);
+    background:rgba(15,23,42,.96);
+    color:#e5e7eb;
+    font-size:12px;
+    font-weight:600;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    box-shadow:0 16px 32px rgba(0,0,0,1);
+  }
+  .back-btn span{ font-size:14px; }
+  .back-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 22px 44px rgba(0,0,0,1);
+    border-color:#38bdf8;
+  }
+
+  .hint-tag{
+    font-size:11px;
+    padding:3px 8px;
+    border-radius:999px;
+    border:1px dashed rgba(148,163,184,.7);
+    color:#bfdbfe;
+    background:rgba(15,23,42,.7);
+  }
+
+  /* FILTROS */
+
+  .filters-card{
+    border-radius:18px;
+    padding:12px 14px;
+    background:
+      radial-gradient(150% 200% at -10% -30%, var(--surface-glow), transparent 55%),
+      var(--surface);
+    border:1px solid var(--surface-border);
+    box-shadow:0 22px 44px rgba(0,0,0,.9);
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .filters-left{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
+  }
+
+  .filters-group{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:5px 9px;
+    border-radius:999px;
+    background:rgba(15,23,42,.92);
+    border:1px solid rgba(148,163,184,.6);
+  }
+  [data-theme="light"] .filters-group{
+    background:#e5edff;
+    border-color:rgba(148,163,184,.7);
+  }
+  .filters-label{
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+  }
+  .filters-group select,
+  .filters-group input[type="date"]{
+    background:rgba(15,23,42,.92);
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.7);
+    color:var(--text);
+    font-size:12px;
+    padding:4px 9px;
+  }
+  [data-theme="light"] .filters-group select,
+  [data-theme="light"] .filters-group input[type="date"]{
+    background:#ffffff;
+  }
+
+  .btn-primary{
+    border-radius:999px;
+    border:none;
+    padding:7px 16px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    background:linear-gradient(120deg,#22c55e,#06b6d4);
+    color:#020617;
+    box-shadow:0 16px 32px rgba(0,0,0,.95);
+  }
+  .btn-primary:hover{
+    filter:brightness(1.05);
+    transform:translateY(-1px);
+  }
+
+  .filters-note{
+    font-size:11px;
+    color:var(--muted);
+  }
+
+  /* TABLA */
+
+  .panel{
+    border-radius:18px;
+    padding:14px 14px 16px;
+    background:rgba(15,23,42,.96);
+    border:1px solid rgba(30,64,175,.8);
+    box-shadow:0 26px 52px rgba(0,0,0,1);
+  }
+  [data-theme="light"] .panel{
+    background:#ffffff;
+    border-color:rgba(148,163,184,.6);
+    box-shadow:0 22px 40px rgba(15,23,42,.18);
+  }
+
+  .panel-header{
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:baseline;
+    margin-bottom:10px;
+  }
+  .panel-title{
+    margin:0;
+    font-size:15px;
+    font-weight:700;
+  }
+  .panel-sub{
+    margin:0;
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  .badge-soft{
+    font-size:11px;
+    padding:2px 7px;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.7);
+    color:#e5e7eb;
+    background:rgba(15,23,42,.9);
+  }
+  [data-theme="light"] .badge-soft{
+    color:#0f172a;
+    background:#e5edff;
+  }
+
+  .table-wrapper{
+    margin-top:6px;
+    border-radius:14px;
+    overflow:hidden;
+    border:1px solid rgba(30,64,175,.9);
+  }
+
+  table.asistencia-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+  }
+  table.asistencia-table thead{
+    background:linear-gradient(90deg,#020617,#0f172a);
+  }
+  [data-theme="light"] table.asistencia-table thead{
+    background:linear-gradient(90deg,#e5e7eb,#dbeafe);
+  }
+  table.asistencia-table th,
+  table.asistencia-table td{
+    padding:8px 8px;
+    text-align:left;
+  }
+  table.asistencia-table th{
+    font-weight:600;
+    color:#e5e7eb;
+    border-bottom:1px solid rgba(148,163,184,.6);
+    white-space:nowrap;
+  }
+  [data-theme="light"] table.asistencia-table th{
+    color:#0f172a;
+  }
+  table.asistencia-table tbody tr:nth-child(odd){
+    background:rgba(15,23,42,.96);
+  }
+  table.asistencia-table tbody tr:nth-child(even){
+    background:rgba(15,23,42,.9);
+  }
+  [data-theme="light"] table.asistencia-table tbody tr:nth-child(odd){
+    background:#ffffff;
+  }
+  [data-theme="light"] table.asistencia-table tbody tr:nth-child(even){
+    background:#eef2ff;
+  }
+  table.asistencia-table td{
+    border-bottom:1px solid rgba(15,23,42,1);
+  }
+  [data-theme="light"] table.asistencia-table td{
+    border-bottom:1px solid #e5e7eb;
+  }
+  table.asistencia-table tbody tr{
+    transition:background .15s ease, transform .12s ease;
+  }
+  table.asistencia-table tbody tr:hover{
+    transform:translateY(-1px);
+    filter:brightness(1.03);
+  }
+
+  .empty-row td{
+    text-align:center;
+    font-size:12px;
+    color:var(--muted);
+  }
+
+  .estado-pill{
+    display:inline-flex;
+    align-items:center;
+    padding:2px 8px;
+    border-radius:999px;
+    font-size:11px;
+    gap:4px;
+  }
+  .estado-pill.presente{
+    color:#bbf7d0;
+    background:rgba(34,197,94,.18);
+  }
+  .estado-pill.tarde{
+    color:#fef3c7;
+    background:rgba(250,204,21,.2);
+  }
+  .estado-pill.ausente{
+    color:#fee2e2;
+    background:rgba(239,68,68,.22);
+  }
+  [data-theme="light"] .estado-pill.presente{
+    color:#166534;
+    background:rgba(22,163,74,.12);
+  }
+  [data-theme="light"] .estado-pill.tarde{
+    color:#854d0e;
+    background:rgba(234,179,8,.14);
+  }
+  [data-theme="light"] .estado-pill.ausente{
+    color:#991b1b;
+    background:rgba(220,38,38,.14);
+  }
+
+  .estado-buttons{
+    display:inline-flex;
+    border-radius:999px;
+    border:1px solid rgba(148,163,184,.6);
+    overflow:hidden;
+    background:rgba(15,23,42,.95);
+  }
+  [data-theme="light"] .estado-buttons{
+    background:#f9fafb;
+  }
+  .estado-btn{
+    border:none;
+    padding:4px 8px;
+    font-size:11px;
+    cursor:pointer;
+    color:#9ca3af;
+    background:transparent;
+    min-width:62px;
+    transition:background .12s ease,color .12s ease, transform .08s ease;
+  }
+  .estado-btn span{
+    font-size:12px;
+  }
+  .estado-btn:hover{
+    filter:brightness(1.1);
+  }
+  .estado-btn.active-presente{
+    background:rgba(34,197,94,.28);
+    color:#bbf7d0;
+  }
+  .estado-btn.active-tarde{
+    background:rgba(250,204,21,.28);
+    color:#fef3c7;
+  }
+  .estado-btn.active-ausente{
+    background:rgba(239,68,68,.28);
+    color:#fee2e2;
+  }
+  [data-theme="light"] .estado-btn.active-presente{
+    background:rgba(22,163,74,.16);
+    color:#166534;
+  }
+  [data-theme="light"] .estado-btn.active-tarde{
+    background:rgba(234,179,8,.16);
+    color:#854d0e;
+  }
+  [data-theme="light"] .estado-btn.active-ausente{
+    background:rgba(220,38,38,.16);
+    color:#991b1b;
+  }
+
+  .save-bar{
+    margin-top:10px;
+    padding:8px 10px;
+    border-radius:999px;
+    background:rgba(15,23,42,.96);
+    border:1px solid rgba(148,163,184,.7);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+  [data-theme="light"] .save-bar{
+    background:#e5edff;
+    border-color:rgba(148,163,184,.8);
+  }
+  .status-text{
+    font-size:12px;
+    color:var(--muted);
+  }
+  .status-text.ok{
+    color:#4ade80;
+  }
+  .status-text.err{
+    color:#fca5a5;
+  }
+
+  .btn-save{
+    border-radius:999px;
+    border:none;
+    padding:6px 16px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+    background:linear-gradient(120deg,#4ade80,#22c55e);
+    color:#052e16;
+    box-shadow:0 16px 32px rgba(0,0,0,.9);
+  }
+  .btn-save[disabled]{
+    opacity:.5;
+    cursor:default;
+    box-shadow:none;
+  }
+
+  .row-anim{
+    animation:rowIn .25s ease forwards;
+  }
+  @keyframes rowIn{
+    from{
+      opacity:0;
+      transform:translateY(4px);
+    }
+    to{
+      opacity:1;
+      transform:translateY(0);
+    }
+  }
+
+  @media (max-width:640px){
+    .header-main{ max-width:100%; }
+    .header-extra{ align-items:flex-start; }
+    .filters-card{
+      flex-direction:column;
+      align-items:flex-start;
+    }
+    .save-bar{
+      flex-direction:column;
+      align-items:flex-start;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="screen">
+  <header class="page-header">
+    <div class="header-card">
+      <div class="header-main">
+        <h1 class="page-title">
+          Asistencia manual
+          <span class="page-pill">Instructor</span>
+        </h1>
+        <p class="page-sub">
+          Marca presentes, tardes o ausentes para los aprendices que no pudieron escanear el QR.
+        </p>
+        <div class="meta-row">
+          <span class="meta-chip">Solo fichas donde eres instructor asignado</span>
+          <span class="meta-chip">Registros se guardan en la misma tabla de asistencia</span>
+        </div>
+      </div>
+      <div class="header-extra">
+        <a href="{% url 'core:dash_instructor' %}" class="back-btn">
+          <span>⟵</span> Volver al panel
+        </a>
+        <span class="hint-tag">Tip: usa un día por ficha para no enredar el conteo.</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- FILTROS -->
+  <section class="filters-card">
+    <div class="filters-left">
+      <div class="filters-group">
+        <span class="filters-label">Ficha / programa:</span>
+        <select id="selPrograma">
+          <option value="">Selecciona...</option>
+        </select>
+      </div>
+
+      <div class="filters-group">
+        <span class="filters-label">Fecha:</span>
+        <input id="fechaInput" type="date">
+      </div>
+
+      <button id="btnCargar" class="btn-primary">Cargar aprendices</button>
+    </div>
+
+    <div>
+      <p class="filters-note">
+        1) Elige ficha y fecha. 2) Marca el estado de cada aprendiz. 3) Guarda cambios.
+      </p>
+    </div>
+  </section>
+
+  <!-- TABLA -->
+  <section class="panel">
+    <div class="panel-header">
+      <div>
+        <h2 class="panel-title">Listado de aprendices</h2>
+        <p class="panel-sub" id="panelSub">
+          Selecciona ficha y fecha para ver los aprendices.
+        </p>
+      </div>
+      <div>
+        <span class="badge-soft" id="badgeResumen">0 registros cargados</span>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="asistencia-table">
+        <thead>
+          <tr>
+            <th>Aprendiz</th>
+            <th>Correo</th>
+            <th>Estado actual</th>
+            <th>Marcar</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyAsistencia">
+          <tr class="empty-row">
+            <td colspan="4">Sin datos. Elige ficha y fecha, luego presiona "Cargar aprendices".</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="save-bar">
+      <span class="status-text" id="statusText">
+        Sin cambios pendientes.
+      </span>
+      <button class="btn-save" id="btnGuardar" disabled>Guardar cambios</button>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  // Partículas
+  function particlesConfig(){
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      particles:{
+        number:{ value:60 },
+        color:{ value: isLight ? ["#64748b","#94a3b8","#475569"] : ["#22d3ee","#8b5cf6","#38bdf8"] },
+        shape:{ type:"circle" },
+        opacity:{ value: isLight ? 0.20 : 0.16 },
+        size:{ value: isLight ? 2.2 : 2.6 },
+        line_linked:{
+          enable:true,
+          distance:150,
+          color: isLight ? "#94a3b8" : "#22d3ee",
+          opacity: isLight ? 0.22 : 0.18,
+          width:1
+        },
+        move:{ enable:true, speed:1.6 }
+      },
+      interactivity:{
+        detect_on:"canvas",
+        events:{ onhover:{ enable:true, mode:"repulse" } },
+        modes:{ repulse:{ distance:110 } }
+      },
+      retina_detect:true
+    };
+  }
+
+  function applyParticles(){
+    try{
+      if(window.pJSDom && window.pJSDom.length){
+        window.pJSDom[0].pJS.fn.vendors.destroypJS();
+        window.pJSDom.length = 0;
+      }
+    }catch(_){}
+    particlesJS("particles-js", particlesConfig());
+  }
+  applyParticles();
+  window.addEventListener('themechange', applyParticles);
+
+  // --------- LÓGICA DE ASISTENCIA MANUAL ---------
+
+  const URL_META = "{% url 'core:asistencia_manual_meta_api' %}";
+  const URL_LIST = "{% url 'core:asistencia_manual_list_api' %}";
+  const URL_SAVE = "{% url 'core:asistencia_manual_save_api' %}";
+
+  const selPrograma = document.getElementById("selPrograma");
+  const fechaInput  = document.getElementById("fechaInput");
+  const btnCargar   = document.getElementById("btnCargar");
+  const tbody       = document.getElementById("tbodyAsistencia");
+  const statusText  = document.getElementById("statusText");
+  const btnGuardar  = document.getElementById("btnGuardar");
+  const badgeResumen= document.getElementById("badgeResumen");
+  const panelSub    = document.getElementById("panelSub");
+
+  function getCookie(name){
+    let cookieValue = null;
+    if(document.cookie && document.cookie !== ""){
+      const cookies = document.cookie.split(";");
+      for(let c of cookies){
+        const cookie = c.trim();
+        if(cookie.substring(0,name.length+1) === (name + "=")){
+          cookieValue = decodeURIComponent(cookie.substring(name.length+1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie("csrftoken");
+
+  function setStatus(msg, type){
+    statusText.textContent = msg;
+    statusText.classList.remove("ok","err");
+    if(type === "ok") statusText.classList.add("ok");
+    if(type === "err") statusText.classList.add("err");
+  }
+
+  async function loadMeta(){
+    try{
+      const resp = await fetch(URL_META);
+      const data = await resp.json();
+      if(!data.ok){
+        setStatus("No se pudieron cargar las fichas del instructor.", "err");
+        return;
+      }
+      // Fichas
+      selPrograma.innerHTML = '<option value="">Selecciona...</option>';
+      (data.programas || []).forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = `${p.ficha || "S/F"} · ${p.nombre || "Programa"}`;
+        selPrograma.appendChild(opt);
+      });
+      // Fecha
+      if(data.today && !fechaInput.value){
+        fechaInput.value = data.today;
+      }
+    }catch(e){
+      setStatus("Error cargando información inicial.", "err");
+    }
+  }
+
+  function clearTable(message){
+    tbody.innerHTML = `
+      <tr class="empty-row">
+        <td colspan="4">${message}</td>
+      </tr>`;
+    badgeResumen.textContent = "0 registros cargados";
+    btnGuardar.disabled = true;
+  }
+
+  function renderRows(rows){
+    if(!rows || !rows.length){
+      clearTable("No hay aprendices para esa ficha en la fecha seleccionada.");
+      return;
+    }
+    tbody.innerHTML = "";
+    rows.forEach((r, idx) => {
+      const tr = document.createElement("tr");
+      tr.classList.add("row-anim");
+      tr.dataset.userId = r.user_id;
+      tr.dataset.estado = r.estado || "";
+      tr.dataset.originalEstado = r.estado || "";
+
+      const estadoTxt = r.estado || "Sin registro";
+      let pillClass = "";
+      if(r.estado === "Presente") pillClass = "presente";
+      else if(r.estado === "Tarde") pillClass = "tarde";
+      else if(r.estado === "Ausente") pillClass = "ausente";
+
+      tr.innerHTML = `
+        <td>${r.nombre || ""}</td>
+        <td>${r.email || ""}</td>
+        <td>
+          ${
+            pillClass
+            ? `<span class="estado-pill ${pillClass}">${r.estado}</span>`
+            : `<span class="estado-pill" style="opacity:.65;border:1px dashed rgba(148,163,184,.7);background:transparent;color:var(--muted);">Sin registro</span>`
+          }
+        </td>
+        <td>
+          <div class="estado-buttons">
+            <button type="button" class="estado-btn btn-presente${r.estado === "Presente" ? " active-presente" : ""}" data-estado="Presente">
+              <span>✅</span> P
+            </button>
+            <button type="button" class="estado-btn btn-tarde${r.estado === "Tarde" ? " active-tarde" : ""}" data-estado="Tarde">
+              <span>⏱</span> T
+            </button>
+            <button type="button" class="estado-btn btn-ausente${r.estado === "Ausente" ? " active-ausente" : ""}" data-estado="Ausente">
+              <span>❌</span> A
+            </button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    badgeResumen.textContent = `${rows.length} registros cargados`;
+    setStatus("Sin cambios pendientes.", null);
+    btnGuardar.disabled = true;
+  }
+
+  async function cargarAprendices(){
+    const programaId = selPrograma.value;
+    const fecha = fechaInput.value;
+
+    if(!programaId){
+      setStatus("Selecciona una ficha antes de cargar.", "err");
+      clearTable("Selecciona ficha y fecha, luego presiona \"Cargar aprendices\".");
+      return;
+    }
+    if(!fecha){
+      setStatus("Selecciona una fecha válida.", "err");
+      clearTable("Selecciona ficha y fecha, luego presiona \"Cargar aprendices\".");
+      return;
+    }
+    setStatus("Cargando aprendices...", null);
+    btnGuardar.disabled = true;
+
+    try{
+      const qs = new URLSearchParams({ programa_id: programaId, fecha });
+      const resp = await fetch(`${URL_LIST}?${qs.toString()}`);
+      const data = await resp.json();
+      if(!data.ok){
+        setStatus(data.msg || "No se pudieron cargar los aprendices.", "err");
+        clearTable(data.msg || "Error al cargar los datos.");
+        return;
+      }
+      renderRows(data.rows || []);
+      panelSub.textContent = `Marcando asistencia para la ficha seleccionada el ${fecha}.`;
+    }catch(e){
+      setStatus("Error al consultar la lista de aprendices.", "err");
+      clearTable("Error al cargar la lista.");
+    }
+  }
+
+  function markRowEstado(tr, estado){
+    tr.dataset.estado = estado;
+    tr.classList.add("row-anim");
+
+    const btns = tr.querySelectorAll(".estado-btn");
+    btns.forEach(b => {
+      b.classList.remove("active-presente","active-tarde","active-ausente");
+      const val = b.dataset.estado;
+      if(val === "Presente" && estado === "Presente") b.classList.add("active-presente");
+      if(val === "Tarde"    && estado === "Tarde")    b.classList.add("active-tarde");
+      if(val === "Ausente"  && estado === "Ausente")  b.classList.add("active-ausente");
+    });
+
+    const cell = tr.children[2];
+    let pillClass = "";
+    if(estado === "Presente") pillClass = "presente";
+    else if(estado === "Tarde") pillClass = "tarde";
+    else if(estado === "Ausente") pillClass = "ausente";
+
+    if(estado){
+      cell.innerHTML = `<span class="estado-pill ${pillClass}">${estado}</span>`;
+    }else{
+      cell.innerHTML = `<span class="estado-pill" style="opacity:.65;border:1px dashed rgba(148,163,184,.7);background:transparent;color:var(--muted);">Sin registro</span>`;
+    }
+  }
+
+  tbody.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".estado-btn");
+    if(!btn) return;
+    const tr = ev.target.closest("tr");
+    if(!tr) return;
+
+    const estado = btn.dataset.estado;
+    markRowEstado(tr, estado);
+
+    // Ver si hay cambios respecto al estado original
+    let changed = false;
+    tbody.querySelectorAll("tr").forEach(row => {
+      if(!row.dataset.userId) return;
+      const orig = row.dataset.originalEstado || "";
+      const now = row.dataset.estado || "";
+      if(orig !== now){
+        changed = true;
+      }
+    });
+
+    if(changed){
+      setStatus("Tienes cambios sin guardar.", null);
+      btnGuardar.disabled = false;
+    }else{
+      setStatus("Sin cambios pendientes.", null);
+      btnGuardar.disabled = true;
+    }
+  });
+
+  async function guardarCambios(){
+    const programaId = selPrograma.value;
+    const fecha = fechaInput.value;
+
+    if(!programaId || !fecha){
+      setStatus("Selecciona ficha y fecha antes de guardar.", "err");
+      return;
+    }
+
+    const items = [];
+    tbody.querySelectorAll("tr").forEach(row => {
+      const userId = row.dataset.userId;
+      if(!userId) return;
+      const orig = row.dataset.originalEstado || "";
+      const now  = row.dataset.estado || "";
+      if(orig === now || !now) return; // solo enviamos cambios con estado válido
+      items.push({
+        user_id: parseInt(userId,10),
+        estado: now
+      });
+    });
+
+    if(!items.length){
+      setStatus("No hay cambios para guardar.", null);
+      btnGuardar.disabled = true;
+      return;
+    }
+
+    btnGuardar.disabled = true;
+    setStatus("Guardando cambios...", null);
+
+    try{
+      const resp = await fetch(URL_SAVE, {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "X-CSRFToken": csrftoken
+        },
+        body:JSON.stringify({
+          programa_id: parseInt(programaId,10),
+          fecha: fecha,
+          items: items
+        })
+      });
+      const data = await resp.json();
+      if(!data.ok){
+        setStatus(data.msg || "No se pudieron guardar los cambios.", "err");
+        btnGuardar.disabled = false;
+        return;
+      }
+
+      // Actualizar "originalEstado" para que quede todo sincronizado
+      tbody.querySelectorAll("tr").forEach(row => {
+        if(!row.dataset.userId) return;
+        row.dataset.originalEstado = row.dataset.estado || "";
+      });
+
+      setStatus("Cambios guardados correctamente.", "ok");
+      btnGuardar.disabled = true;
+    }catch(e){
+      setStatus("Error al guardar cambios.", "err");
+      btnGuardar.disabled = false;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    loadMeta();
+    btnCargar.addEventListener("click", (e) => {
+      e.preventDefault();
+      cargarAprendices();
+    });
+    btnGuardar.addEventListener("click", (e) => {
+      e.preventDefault();
+      guardarCambios();
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Acerca de{% endblock %}
+
+{% block content %}
+<div id="particles-js" class="particles-layer"></div>
+
+<div class="page-screen">
+  <div class="about-card">
+    <h2>💡 Acerca de Nosotros</h2>
+    <p>
+      Bienvenido a <span class="highlight">In_Class</span>, donde nos apasiona crear soluciones
+      digitales que sean <span class="highlight">eficientes</span>,
+      <span class="highlight">modernas</span> y <span class="highlight">fáciles de usar</span>.
+      Nuestro equipo está comprometido en ofrecer una experiencia increíble mientras interactúas con nuestra plataforma.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block head_extra %}
+<style>
+  .particles-layer{position:fixed; inset:0; background:#1a1a1a; z-index:0;}
+  .page-screen{
+    position:relative; z-index:1;
+    min-height:calc(100vh - 160px);
+    display:flex; align-items:center; justify-content:center;
+    padding:32px 20px;
+  }
+  .about-card{
+    background:rgba(255,255,255,.08); backdrop-filter:blur(15px);
+    border-radius:20px; padding:35px 40px; width:min(420px, 92vw);
+    box-shadow:0 10px 25px rgba(0,0,0,.35); color:#fff; text-align:center;
+    transition:transform .3s, box-shadow .3s;
+  }
+  .about-card:hover{ transform:scale(1.02); box-shadow:0 12px 35px rgba(0,0,0,.45); }
+  .about-card h2{ margin-bottom:15px; font-size:26px; color:#f0f0f0; text-shadow:0 0 6px rgba(255,255,255,.4); }
+  .about-card p{ font-size:14px; color:#ccc; line-height:1.6; }
+  .highlight{ color:#3498db; font-weight:500; text-shadow:0 0 4px #3498db; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+particlesJS("particles-js", {
+  particles:{ number:{value:60}, color:{value:["#3498db","#2c3e50","#1a1a1a"]},
+  shape:{type:"circle"}, opacity:{value:.2}, size:{value:3},
+  line_linked:{enable:true,distance:150,color:"#3498db",opacity:.2,width:1},
+  move:{enable:true,speed:2}},
+  interactivity:{ detect_on:"canvas", events:{ onhover:{enable:true,mode:"repulse"} },
+  modes:{ repulse:{ distance:100 } } }, retina_detect:true
+});
+</script>
+{% endblock %}

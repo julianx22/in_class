@@ -1,0 +1,807 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Reportes del Instructor{% endblock %}
+
+{% block head_extra %}
+<style>
+  :root{
+    --bg:#050816;
+    --text:#e5e7eb;
+    --muted:#9ca3af;
+
+    --grad-a:#0ea5e9;
+    --grad-b:#6366f1;
+
+    --surface:#0b1120;
+    --surface-soft:#020617;
+    --surface-border:rgba(148,163,184,.35);
+    --surface-glow:rgba(56,189,248,.26);
+
+    --card-strong:#f9fafb;
+    --card-soft:#cbd5f5;
+  }
+  [data-theme="light"]{
+    --bg:#edf2ff;
+    --text:#020617;
+    --muted:#4b5563;
+
+    --grad-a:#4ade80;
+    --grad-b:#60a5fa;
+
+    --surface:#ffffff;
+    --surface-soft:#ffffff;
+    --surface-border:rgba(148,163,184,.35);
+    --surface-glow:rgba(59,130,246,.12);
+
+    --card-strong:#020617;
+    --card-soft:#4b5563;
+  }
+
+  html, body{background:var(--bg);color:var(--text);}
+
+  #particles-js{
+    position:fixed; inset:0; z-index:0;
+    background:transparent; pointer-events:none;
+  }
+
+  .screen{
+    position:relative; z-index:1;
+    width:100%; max-width:1100px;
+    margin:0 auto;
+    padding:32px 16px 32px;
+    height:calc(100vh - 160px);
+    overflow-y:auto;
+    display:flex; flex-direction:column;
+    gap:18px;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(96,165,250,.7) rgba(15,23,42,.7);
+  }
+  .screen::-webkit-scrollbar{ width:6px; }
+  .screen::-webkit-scrollbar-track{ background:rgba(15,23,42,.7); border-radius:999px; }
+  .screen::-webkit-scrollbar-thumb{ background:linear-gradient(var(--grad-a),var(--grad-b)); border-radius:999px; }
+  [data-theme="light"] .screen{
+    scrollbar-color:rgba(37,99,235,.6) rgba(226,232,240,.8);
+  }
+  [data-theme="light"] .screen::-webkit-scrollbar-track{ background:rgba(226,232,240,.8); }
+
+  /* ================= HEADER MÁS OSCURO Y ÚNICO ================= */
+
+  .page-header{
+    margin-bottom:4px;
+  }
+
+  .header-card{
+    position:relative;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+    padding:18px 22px;
+    border-radius:26px;
+    /* fondo bien oscuro con toques verdes/morados */
+    background:
+      radial-gradient(circle at 0% 0%, rgba(45,212,191,.18), transparent 55%),
+      radial-gradient(circle at 110% 0%, rgba(129,140,248,.22), transparent 55%),
+      linear-gradient(135deg,#020617 0%,#020617 30%,#020617 55%,#020617 100%);
+    border:1px solid rgba(148,163,184,.55);
+    box-shadow:
+      0 22px 48px rgba(0,0,0,.95),
+      0 0 0 1px rgba(15,23,42,.95),
+      0 0 40px rgba(56,189,248,.22);
+    overflow:hidden;
+    /* blur para que se vea más makiao */
+    backdrop-filter:blur(14px);
+  }
+  [data-theme="light"] .header-card{
+    background:
+      radial-gradient(circle at 0% 0%, rgba(45,212,191,.2), transparent 55%),
+      radial-gradient(circle at 110% 0%, rgba(129,140,248,.25), transparent 55%),
+      linear-gradient(135deg,#1d4ed8,#4f46e5);
+    box-shadow:0 18px 36px rgba(15,23,42,.24);
+    border-color:rgba(191,219,254,.9);
+  }
+
+  .header-card::before{
+    content:"";
+    position:absolute;
+    inset:-40%;
+    background:
+      radial-gradient(circle at 0 0, rgba(15,23,42,.85), transparent 55%),
+      radial-gradient(circle at 100% 100%, rgba(15,23,42,.7), transparent 55%);
+    pointer-events:none;
+  }
+
+  /* DIFUMINADO EXTRA DE COLOR (solo capa visual) */
+  .header-card::after{
+    content:"";
+    position:absolute;
+    inset:-45%;
+    background:
+      radial-gradient(circle at 15% 120%, rgba(34,197,94,.40), transparent 65%),
+      radial-gradient(circle at 90% -10%, rgba(59,130,246,.48), transparent 65%);
+    filter:blur(28px);
+    opacity:.95;
+    pointer-events:none;
+    mix-blend-mode:screen;
+  }
+  [data-theme="light"] .header-card::after{
+    background:
+      radial-gradient(circle at 10% 120%, rgba(34,197,94,.35), transparent 65%),
+      radial-gradient(circle at 95% -10%, rgba(59,130,246,.42), transparent 65%);
+  }
+
+  .page-heading,
+  .page-actions{
+    position:relative;
+    z-index:1;
+  }
+
+  .page-heading{
+    max-width:60%;
+    min-width:240px;
+  }
+
+  .page-title{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin:0;
+    font-size:22px;
+    font-weight:800;
+    letter-spacing:.2px;
+    color:#ecfeff;
+  }
+
+  .page-title-pill{
+    font-size:11px;
+    padding:3px 8px;
+    border-radius:999px;
+    border:1px solid rgba(45,212,191,.6);
+    background:rgba(15,23,42,.92);
+    color:#a5f3fc;
+    text-transform:uppercase;
+    letter-spacing:.1em;
+  }
+
+  .page-sub{
+    margin:4px 0 0;
+    font-size:13px;
+    color:#e5e7eb;
+    opacity:.92;
+  }
+
+  .page-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
+    justify-content:flex-end;
+  }
+
+  .back-btn{
+    border-radius:999px;
+    padding:7px 14px;
+    font-size:12px;
+    font-weight:700;
+    text-decoration:none;
+    background:radial-gradient(circle at 0 0,rgba(148,163,184,.35),transparent 55%), #020617;
+    color:#f9fafb;
+    border:1px solid rgba(148,163,184,.7);
+    box-shadow:0 16px 32px rgba(0,0,0,1);
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .back-btn span{
+    font-size:14px;
+  }
+  .back-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 20px 42px rgba(0,0,0,1);
+    border-color:#38bdf8;
+  }
+
+  .range-form{
+    display:flex;
+    gap:6px;
+    align-items:center;
+    font-size:12px;
+    color:#e5e7eb;
+    padding:6px 10px;
+    border-radius:999px;
+    background:rgba(15,23,42,.92);
+    border:1px solid rgba(148,163,184,.55);
+    box-shadow:0 14px 28px rgba(0,0,0,.85);
+    backdrop-filter:blur(10px);
+  }
+  [data-theme="light"] .range-form{
+    background:rgba(15,23,42,.22);
+    color:#f9fafb;
+    border-color:rgba(191,219,254,.95);
+  }
+  .range-form span.label{
+    font-weight:600;
+  }
+  .range-form select{
+    background:var(--surface-soft);
+    border-radius:999px;
+    border:1px solid var(--surface-border);
+    padding:4px 10px;
+    color:var(--text);
+    font-size:12px;
+  }
+  .range-form button{
+    border-radius:999px;
+    border:none;
+    padding:5px 14px;
+    font-size:12px;
+    font-weight:700;
+    background:linear-gradient(120deg,#22c55e,#06b6d4);
+    color:#020617;
+    cursor:pointer;
+    box-shadow:0 12px 26px rgba(0,0,0,.95);
+  }
+  .range-form button:hover{
+    filter:brightness(1.05);
+  }
+
+  /* ================= RESTO (IGUAL) ================= */
+
+  .summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:14px;
+  }
+  .summary-card{
+    border-radius:16px;
+    padding:12px 14px;
+    background:radial-gradient(130% 200% at -10% -40%, var(--surface-glow), transparent 55%), var(--surface);
+    border:1px solid var(--surface-border);
+    box-shadow:0 20px 40px rgba(0,0,0,.75);
+    font-size:12px;
+    position:relative;
+    overflow:hidden;
+  }
+  [data-theme="light"] .summary-card{
+    box-shadow:0 18px 34px rgba(15,23,42,.10);
+  }
+  .summary-label{
+    color:var(--muted);
+    margin:0 0 3px;
+    font-size:12px;
+  }
+  .summary-value{
+    margin:0;
+    font-size:18px;
+    font-weight:800;
+    color:var(--card-strong);
+  }
+  .summary-extra{
+    margin:2px 0 0;
+    font-size:11px;
+    color:var(--card-soft);
+  }
+  .summary-chip{
+    position:absolute;
+    right:10px;
+    top:10px;
+    font-size:11px;
+    border-radius:999px;
+    padding:2px 8px;
+    border:1px solid rgba(148,163,184,.5);
+    background:rgba(15,23,42,.8);
+    color:var(--card-soft);
+  }
+  [data-theme="light"] .summary-chip{
+    background:#e5edff;
+  }
+
+  .panel{
+    border-radius:18px;
+    padding:12px 0 4px;
+    background:transparent;
+    border:none;
+    box-shadow:none;
+  }
+
+  .panel-title{
+    margin:0 0 6px;
+    font-size:15px;
+    font-weight:700;
+    color:var(--card-strong);
+  }
+  .panel-sub{
+    margin:0 0 12px;
+    font-size:12px;
+    color:var(--card-soft);
+  }
+
+  .report-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+    border-radius:12px;
+    overflow:hidden;
+  }
+  .report-table thead{
+    background:linear-gradient(90deg,#1e293b,#020617);
+  }
+  [data-theme="light"] .report-table thead{
+    background:linear-gradient(90deg,#dbeafe,#e5e7eb);
+  }
+  .report-table th,
+  .report-table td{
+    padding:8px 8px;
+    text-align:left;
+  }
+  .report-table th{
+    font-weight:600;
+    color:#e5e7eb;
+    border-bottom:1px solid rgba(148,163,184,.55);
+    white-space:nowrap;
+  }
+  [data-theme="light"] .report-table th{
+    color:#020617;
+  }
+  .report-table tbody tr:nth-child(odd){
+    background:rgba(15,23,42,.88);
+  }
+  [data-theme="light"] .report-table tbody tr:nth-child(odd){
+    background:#f9fafb;
+  }
+  .report-table tbody tr:nth-child(even){
+    background:rgba(15,23,42,.75);
+  }
+  [data-theme="light"] .report-table tbody tr:nth-child(even){
+    background:#eef2ff;
+  }
+  .report-table td{
+    border-bottom:1px solid rgba(15,23,42,.9);
+  }
+  [data-theme="light"] .report-table td{
+    border-bottom:1px solid #e5e7eb;
+  }
+  .report-table tbody tr:hover{
+    filter:brightness(1.06);
+  }
+
+  .badge-porcentaje{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:2px 7px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:600;
+    background:rgba(34,197,94,.18);
+    color:#bbf7d0;
+  }
+  [data-theme="light"] .badge-porcentaje{
+    background:rgba(22,163,74,.10);
+    color:#166534;
+  }
+
+  .badge-ausente{
+    display:inline-flex;
+    padding:2px 7px;
+    border-radius:999px;
+    font-size:10px;
+    background:rgba(239,68,68,.18);
+    color:#fecaca;
+    margin-left:4px;
+  }
+  [data-theme="light"] .badge-ausente{
+    background:rgba(220,38,38,.12);
+    color:#991b1b;
+  }
+
+  .btn-link{
+    border-radius:999px;
+    padding:4px 10px;
+    border:1px solid rgba(148,163,184,.6);
+    font-size:11px;
+    text-decoration:none;
+    color:var(--card-soft);
+    background:rgba(15,23,42,.85);
+    white-space:nowrap;
+  }
+  [data-theme="light"] .btn-link{
+    background:#e5edff;
+    color:#1e293b;
+  }
+  .btn-link:hover{
+    border-color:var(--grad-a);
+  }
+
+  .chart-wrapper{
+    margin-top:14px;
+    max-height:260px;
+  }
+
+  .state-msg{
+    border-radius:16px;
+    padding:12px 14px;
+    background:rgba(15,23,42,.9);
+    border:1px dashed rgba(148,163,184,.7);
+    font-size:13px;
+    color:var(--card-soft);
+  }
+  [data-theme="light"] .state-msg{
+    background:#e5edff;
+    border-color:rgba(148,163,184,.8);
+  }
+
+  .detail-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .detail-title{
+    margin:0;
+    font-size:14px;
+    font-weight:700;
+  }
+  .detail-meta{
+    margin:0;
+    font-size:12px;
+    color:var(--card-soft);
+  }
+  .chip-riesgo{
+    display:inline-flex;
+    align-items:center;
+    padding:2px 8px;
+    border-radius:999px;
+    font-size:11px;
+    gap:4px;
+  }
+  .chip-riesgo.ok{
+    background:rgba(34,197,94,.15);
+    color:#bbf7d0;
+  }
+  .chip-riesgo.mid{
+    background:rgba(250,204,21,.18);
+    color:#fef3c7;
+  }
+  .chip-riesgo.bad{
+    background:rgba(239,68,68,.2);
+    color:#fee2e2;
+  }
+  [data-theme="light"] .chip-riesgo.ok{
+    background:rgba(22,163,74,.12);
+    color:#166534;
+  }
+  [data-theme="light"] .chip-riesgo.mid{
+    background:rgba(234,179,8,.12);
+    color:#854d0e;
+  }
+  [data-theme="light"] .chip-riesgo.bad{
+    background:rgba(220,38,38,.12);
+    color:#991b1b;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="screen">
+  <header class="page-header">
+    <div class="header-card">
+      <div class="page-heading">
+        <h1 class="page-title">
+          Reportes de asistencia
+          <span class="page-title-pill">Instructor</span>
+        </h1>
+        <p class="page-sub">
+          Resumen de asistencia de tus aprendices por ficha y programa.<br>
+          Rango: {{ desde|date:"d/m/Y" }} – {{ hasta|date:"d/m/Y" }} ({{ dias }} días)
+        </p>
+      </div>
+
+      <div class="page-actions">
+        <a href="{% url 'core:dash_instructor' %}" class="back-btn">
+          <span>⟵</span> Volver al panel
+        </a>
+
+        <form method="get" class="range-form">
+          <span class="label">Rango:</span>
+          <select name="dias">
+            <option value="7"  {% if dias == 7  %}selected{% endif %}>7 días</option>
+            <option value="15" {% if dias == 15 %}selected{% endif %}>15 días</option>
+            <option value="30" {% if dias == 30 %}selected{% endif %}>30 días</option>
+            <option value="60" {% if dias == 60 %}selected{% endif %}>60 días</option>
+            <option value="90" {% if dias == 90 %}selected{% endif %}>90 días</option>
+          </select>
+
+          {% if por_programa %}
+            <span class="label">Ficha:</span>
+            <select name="programa_id">
+              <option value="">Todas</option>
+              {% for p in por_programa %}
+                <option value="{{ p.programa_id }}" {% if p.programa_id == programa_id %}selected{% endif %}>
+                  {{ p.ficha }} · {{ p.nombre_programa|truncatechars:28 }}
+                </option>
+              {% endfor %}
+            </select>
+          {% endif %}
+
+          <button type="submit">Aplicar</button>
+        </form>
+      </div>
+    </div>
+  </header>
+
+  {% if sin_instructor %}
+    <div class="state-msg">
+      No se encontró tu registro de instructor en la base de datos legacy
+      (tabla <strong>Usuario</strong> con tu correo). Revisa que el correo de tu
+      cuenta de Django coincida con el de SQL Server.
+    </div>
+  {% elif sin_aprendices %}
+    <div class="state-msg">
+      No tienes aprendices asignados en la tabla <strong>Instructor_Asignado</strong>.
+      Pide que te asignen aprendices para poder ver reportes.
+    </div>
+  {% else %}
+
+    <!-- RESUMEN GLOBAL -->
+    <section class="summary-grid">
+      <article class="summary-card">
+        <span class="summary-chip">Promedio general</span>
+        <p class="summary-label">Asistencia promedio</p>
+        <p class="summary-value">{{ pct_presente }}%</p>
+        <p class="summary-extra">
+          Sobre {{ total }} registros de asistencia en el rango.
+        </p>
+      </article>
+
+      <article class="summary-card">
+        <p class="summary-label">Presentes</p>
+        <p class="summary-value">{{ presentes }}</p>
+        <p class="summary-extra">{{ pct_presente }}% del total.</p>
+      </article>
+
+      <article class="summary-card">
+        <p class="summary-label">Tardes</p>
+        <p class="summary-value">{{ tardes }}</p>
+        <p class="summary-extra">{{ pct_tarde }}% de los registros.</p>
+      </article>
+
+      <article class="summary-card">
+        <p class="summary-label">Ausencias</p>
+        <p class="summary-value">{{ ausentes }}</p>
+        <p class="summary-extra">{{ pct_ausente }}% de los registros.</p>
+      </article>
+    </section>
+
+    <!-- TABLA POR PROGRAMA -->
+    <section class="panel">
+      <h2 class="panel-title">Resumen por ficha / programa</h2>
+      <p class="panel-sub">
+        Cada fila corresponde a la asistencia de tus aprendices en una ficha.
+        Puedes filtrar arriba por rango de días y por ficha o usar el botón "Ver detalle".
+      </p>
+
+      <div style="overflow-x:auto;">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Programa</th>
+              <th>Ficha</th>
+              <th>Total registros</th>
+              <th>Presentes</th>
+              <th>Tardes</th>
+              <th>Ausentes</th>
+              <th>% asistencia</th>
+              <th>Detalle</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in por_programa %}
+              <tr>
+                <td>{{ p.nombre_programa }}</td>
+                <td>{{ p.ficha }}</td>
+                <td>{{ p.total }}</td>
+                <td>{{ p.presentes }}</td>
+                <td>{{ p.tardes }}</td>
+                <td>
+                  {{ p.ausentes }}
+                  {% if p.ausentes > 0 %}
+                    <span class="badge-ausente">Revisar</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="badge-porcentaje">{{ p.pct_presente }}%</span>
+                </td>
+                <td>
+                  <a href="?dias={{ dias }}&programa_id={{ p.programa_id }}" class="btn-link">
+                    Ver detalle
+                  </a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="8">No hay registros de asistencia en este rango.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="chart-wrapper">
+        <canvas id="chartProgramas"></canvas>
+      </div>
+    </section>
+
+    {% if ficha_meta and detalle_ficha %}
+      <!-- DETALLE POR APRENDIZ EN UNA FICHA -->
+      <section class="panel">
+        <div class="detail-header">
+          <div>
+            <h2 class="detail-title">
+              Detalle de aprendices · Ficha {{ ficha_meta.ficha }}
+            </h2>
+            <p class="detail-meta">
+              Programa: {{ ficha_meta.nombre_programa }} · Jornada: {{ ficha_meta.jornada }}
+            </p>
+          </div>
+          <div>
+            <span class="detail-meta">
+              Aprendices: {{ detalle_ficha|length }}
+            </span>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto; margin-top:10px;">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Aprendiz</th>
+                <th>Correo</th>
+                <th>Total</th>
+                <th>Presentes</th>
+                <th>Tardes</th>
+                <th>Ausentes</th>
+                <th>Justificados</th>
+                <th>% asistencia</th>
+                <th>Riesgo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in detalle_ficha %}
+                <tr>
+                  <td>{{ a.nombre }}</td>
+                  <td>{{ a.email }}</td>
+                  <td>{{ a.total }}</td>
+                  <td>{{ a.presentes }}</td>
+                  <td>{{ a.tardes }}</td>
+                  <td>{{ a.ausentes }}</td>
+                  <td>{{ a.justificados }}</td>
+                  <td>
+                    <span class="badge-porcentaje">{{ a.pct_presente }}%</span>
+                  </td>
+                  <td>
+                    {% if a.pct_presente >= 85 %}
+                      <span class="chip-riesgo ok">👍 Bajo</span>
+                    {% elif a.pct_presente >= 70 %}
+                      <span class="chip-riesgo mid">⚠ Medio</span>
+                    {% else %}
+                      <span class="chip-riesgo bad">⛔ Alto</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="9">No hay registros de asistencia para esta ficha en el rango seleccionado.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+
+<script id="chart-data" type="application/json">
+  {{ chart_json|default:"{}"|safe }}
+</script>
+
+<script>
+  function particlesConfig(){
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      particles:{
+        number:{ value:60 },
+        color:{ value: isLight ? ["#64748b","#94a3b8","#334155"] : ["#22d3ee","#8b5cf6","#60a5fa"] },
+        shape:{ type:"circle" },
+        opacity:{ value: isLight ? 0.22 : 0.18 },
+        size:{ value: isLight ? 2.0 : 2.6 },
+        line_linked:{
+          enable:true,
+          distance:150,
+          color: isLight ? "#94a3b8" : "#22d3ee",
+          opacity: isLight ? 0.18 : 0.16,
+          width:1
+        },
+        move:{ enable:true, speed:1.6 }
+      },
+      interactivity:{
+        detect_on:"canvas",
+        events:{ onhover:{ enable:true, mode:"repulse" } },
+        modes:{ repulse:{ distance:110 } }
+      },
+      retina_detect:true
+    };
+  }
+
+  function applyParticles(){
+    try{
+      if(window.pJSDom && window.pJSDom.length){
+        window.pJSDom[0].pJS.fn.vendors.destroypJS();
+        window.pJSDom.length = 0;
+      }
+    }catch(_){}
+    particlesJS("particles-js", particlesConfig());
+  }
+
+  applyParticles();
+  window.addEventListener('themechange', applyParticles);
+
+  // Gráfica por ficha
+  (function(){
+    const el = document.getElementById('chart-data');
+    if(!el) return;
+    let data;
+    try{
+      data = JSON.parse(el.textContent || "{}");
+    }catch(_){
+      data = {};
+    }
+    if(!data.labels || !data.labels.length) return;
+
+    const ctx = document.getElementById('chartProgramas');
+    if(!ctx) return;
+
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const axisColor = isLight ? '#020617' : '#e5e7eb';
+
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.labels,
+        datasets: [
+          {
+            label: 'Presentes',
+            data: data.presentes,
+            backgroundColor: 'rgba(34,197,94,0.75)'
+          },
+          {
+            label: 'Ausentes',
+            data: data.ausentes,
+            backgroundColor: 'rgba(239,68,68,0.85)'
+          }
+        ]
+      },
+      options: {
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{ labels:{ color: axisColor } }
+        },
+        scales:{
+          x:{ ticks:{ color: axisColor } },
+          y:{ ticks:{ color: axisColor } }
+        }
+      }
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,487 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Panel Instructor{% endblock %}
+
+{% block head_extra %}
+<style>
+  :root{
+    --bg:#050814; --text:#e5e7eb; --muted:#9aa6b2;
+    --grad-a:#0ea5e9; --grad-b:#6366f1;
+
+    --surface:#020617; --surface-soft:#020617;
+    --surface-border:rgba(148,163,184,.22);
+    --surface-glow:rgba(37,99,235,.32);
+
+    --t-cyan:rgba(56,189,248,.14); --b-cyan:rgba(56,189,248,.40);
+    --t-green:rgba(34,197,94,.14); --b-green:rgba(34,197,94,.40);
+    --t-indigo:rgba(79,70,229,.16); --b-indigo:rgba(99,102,241,.40);
+    --t-purple:rgba(168,85,247,.16); --b-purple:rgba(168,85,247,.40);
+    --t-slate:rgba(148,163,184,.10); --b-slate:rgba(148,163,184,.30);
+
+    --quick-title-color:#f9fafb; --quick-desc-color:#aab7c5;
+    --card-text-strong:#f9fafb; --card-text-soft:#9ca3af;
+  }
+  [data-theme="light"]{
+    --bg:#f5f7fb; --text:#0f172a; --muted:#475569;
+    --grad-a:#22c55e; --grad-b:#3b82f6;
+
+    --surface:#ffffff; --surface-soft:#ffffff;
+    --surface-border:rgba(15,23,42,.08); --surface-glow:rgba(37,99,235,.12);
+
+    --t-cyan:rgba(56,189,248,.10); --b-cyan:rgba(56,189,248,.40);
+    --t-green:rgba(34,197,94,.10); --b-green:rgba(34,197,94,.40);
+    --t-indigo:rgba(99,102,241,.10); --b-indigo:rgba(99,102,241,.40);
+    --t-purple:rgba(168,85,247,.10); --b-purple:rgba(168,85,247,.40);
+    --t-slate:rgba(148,163,184,.08); --b-slate:rgba(148,163,184,.35);
+
+    --quick-title-color:#0f172a; --quick-desc-color:#475569;
+    --card-text-strong:#0f172a; --card-text-soft:#64748b;
+  }
+
+  html, body{ background:var(--bg); color:var(--text); }
+
+  #particles-js{
+    position:fixed; inset:0; z-index:0;
+    background:transparent;
+    pointer-events:none;
+  }
+
+  .screen{
+    position:relative; z-index:1; width:100%; max-width:1100px; margin:0 auto;
+    padding:32px 16px 32px; height:calc(100vh - 160px); overflow-y:auto;
+    display:flex; flex-direction:column; gap:24px;
+    scrollbar-width:thin; scrollbar-color:rgba(79,70,229,.7) rgba(15,23,42,.9);
+  }
+  .screen::-webkit-scrollbar{ width:6px; }
+  .screen::-webkit-scrollbar-track{ background:rgba(15,23,42,.9); border-radius:999px; }
+  .screen::-webkit-scrollbar-thumb{
+    background:linear-gradient(var(--grad-a),var(--grad-b)); border-radius:999px;
+  }
+  [data-theme="light"] .screen{
+    scrollbar-color:rgba(37,99,235,.7) rgba(226,232,240,.9);
+  }
+  [data-theme="light"] .screen::-webkit-scrollbar-track{ background:rgba(226,232,240,.9); }
+  [data-theme="light"] .screen::-webkit-scrollbar-thumb{
+    background:linear-gradient(var(--grad-a),var(--grad-b));
+  }
+
+  /* HERO / BANNER */
+  .hero-card{
+    border-radius:18px;
+    background:
+      radial-gradient(120% 160% at 0% 0%, rgba(56,189,248,.35) 0, transparent 55%),
+      radial-gradient(120% 180% at 100% 0%, rgba(129,140,248,.40) 0, transparent 55%),
+      linear-gradient(90deg,var(--grad-a) 0%, var(--grad-b) 100%);
+    box-shadow:0 30px 60px rgba(15,23,42,.7);
+    border:1px solid rgba(255,255,255,.18);
+    padding:20px;
+    display:flex; flex-wrap:wrap; gap:16px;
+  }
+  .hero-left{ display:flex; gap:16px; flex:1 1 auto; min-width:260px; }
+  .pfp-wrapper{
+    width:84px; height:84px; border-radius:50%;
+    border:3px solid rgba(255,255,255,.7);
+    box-shadow:0 16px 36px rgba(15,23,42,.55), 0 0 16px rgba(255,255,255,.24) inset;
+    overflow:hidden; background:#1e3a8a; flex-shrink:0; display:grid; place-items:center;
+  }
+  .pfp-wrapper img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .pfp-fallback{
+    width:100%; height:100%; display:grid; place-items:center;
+    font:700 28px/1.1 ui-sans-serif,system-ui; color:#fff; text-transform:uppercase;
+    background:radial-gradient(120px at 30% 30%, #38bdf8 0%, #1e3a8a 70%);
+  }
+  [data-theme="light"] .pfp-fallback{
+    background:radial-gradient(120px at 30% 30%, #4ade80 0%, #0ea5e9 70%);
+    color:#0f172a;
+  }
+  .hero-info h2{
+    margin:0 0 4px;
+    font-weight:800;
+    font-size:18px;
+    letter-spacing:.2px;
+    color:#f9fafb;
+  }
+  [data-theme="light"] .hero-info h2{ color:#0f172a; }
+  .hero-meta{ margin:0; font-size:13px; color:#e0e7ff; }
+  [data-theme="light"] .hero-meta{ color:#334155; }
+  .edit-btn{
+    margin-top:10px; display:inline-flex; align-items:center; gap:6px;
+    border-radius:999px; border:1px solid rgba(15,23,42,.2);
+    background:#f9fafb; color:#0f172a; font-weight:700; font-size:13px;
+    padding:8px 12px; text-decoration:none;
+    box-shadow:0 12px 26px rgba(15,23,42,.45);
+  }
+  .edit-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 18px 34px rgba(15,23,42,.6);
+  }
+  .hero-right{
+    flex-shrink:0; display:flex; align-items:flex-start; justify-content:flex-end;
+    gap:10px; min-width:100px;
+  }
+  .theme-mini-btn{
+    border-radius:999px;
+    border:1px solid rgba(15,23,42,.35);
+    background:#020617; color:#e5e7eb; font-size:14px; line-height:1;
+    padding:8px 10px;
+    box-shadow:0 12px 26px rgba(15,23,42,.65);
+    cursor:pointer;
+  }
+  [data-theme="light"] .theme-mini-btn{
+    background:#ffffff; color:#0f172a;
+    box-shadow:0 10px 22px rgba(15,23,42,.15);
+    border:1px solid rgba(15,23,42,.18);
+  }
+  .logout-btn{
+    border-radius:999px; border:1px solid rgba(15,23,42,.35);
+    background:#fee2e2; color:#b91c1c; font-weight:700; font-size:12px;
+    padding:6px 10px; text-decoration:none;
+    box-shadow:0 12px 24px rgba(15,23,42,.45);
+  }
+
+  /* ============= HORARIO (AHORA ABAJO DEL HERO) ============= */
+  .agenda-card{
+    border-radius:18px;
+    background:
+      radial-gradient(120% 160% at 0% 0%, rgba(56,189,248,.18) 0, transparent 55%),
+      radial-gradient(120% 160% at 100% 100%, rgba(168,85,247,.22) 0, transparent 55%),
+      var(--surface);
+    border:1px solid var(--surface-border);
+    box-shadow:0 26px 52px rgba(15,23,42,.8);
+    padding:18px 20px 20px;
+  }
+  [data-theme="light"] .agenda-card{
+    box-shadow:0 22px 40px rgba(15,23,42,.10);
+  }
+  .agenda-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .agenda-title{
+    margin:0;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--card-text-strong);
+  }
+  .agenda-sub{
+    margin:0;
+    font-size:12px;
+    color:var(--card-text-soft);
+  }
+  .agenda-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+  }
+
+  .agenda-item{
+    position:relative;
+    flex:1 1 230px;
+    max-width:280px;
+    border-radius:16px;
+    padding:11px 16px 14px 18px;
+    background:linear-gradient(135deg, rgba(15,23,42,.96), rgba(15,23,42,.90));
+    border:1px solid rgba(148,163,184,.4);
+    box-shadow:0 22px 46px rgba(15,23,42,.85);
+    overflow:hidden;
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease, translate .15s ease;
+  }
+  .agenda-item:nth-child(1){
+    background:linear-gradient(135deg, var(--t-cyan), rgba(15,23,42,.96));
+    border-color:var(--b-cyan);
+  }
+  .agenda-item:nth-child(2){
+    background:linear-gradient(135deg, var(--t-green), rgba(15,23,42,.96));
+    border-color:var(--b-green);
+  }
+  .agenda-item:nth-child(3){
+    background:linear-gradient(135deg, var(--t-indigo), rgba(15,23,42,.96));
+    border-color:var(--b-indigo);
+  }
+  .agenda-item::before{
+    content:"";
+    position:absolute;
+    left:0; top:10px; bottom:10px;
+    width:4px;
+    border-radius:999px;
+    background:linear-gradient(#22d3ee,#6366f1);
+  }
+  .agenda-day{
+    margin:0 0 2px;
+    font-weight:700;
+    font-size:13px;
+    color:#f9fafb;
+  }
+  .agenda-text{
+    margin:0;
+    font-size:12px;
+    color:#e5e7eb;
+  }
+  .agenda-tag{
+    position:absolute;
+    right:10px;
+    bottom:8px;
+    padding:3px 8px;
+    font-size:11px;
+    border-radius:999px;
+    background:rgba(15,23,42,.92);
+    border:1px solid rgba(148,163,184,.7);
+    color:#e5e7eb;
+  }
+  [data-theme="light"] .agenda-text{ color:#e5e7eb; }
+  .agenda-item:hover{
+    translate:0 -3px;
+    transform:scale(1.02);
+    box-shadow:0 28px 60px rgba(15,23,42,.95);
+    border-color:rgba(248,250,252,.9);
+  }
+
+  /* ============= ACCIONES RÁPIDAS ============= */
+  .quick-grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px;
+  }
+  .quick-card{
+    border-radius:16px; padding:16px 18px; position:relative;
+    text-decoration:none; cursor:pointer; color:#aab7c5;
+    background:var(--surface-soft); border:1px solid transparent;
+    box-shadow:0 22px 40px rgba(15,23,42,.8),
+               inset 0 0 0 1px rgba(15,23,42,.5);
+    background-image:linear-gradient(135deg, rgba(255,255,255,.03) 0%, rgba(0,0,0,0) 60%);
+    transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+  }
+  [data-theme="light"] .quick-card{
+    box-shadow:0 20px 40px rgba(15,23,42,.10),
+               inset 0 0 0 1px rgba(15,23,42,.02);
+    background-image:linear-gradient(135deg, rgba(0,0,0,.02) 0%, rgba(255,255,255,0) 60%);
+  }
+  .quick-card:hover{
+    transform:translateY(-3px) scale(1.01);
+    box-shadow:0 28px 56px rgba(15,23,42,.95), 0 0 22px rgba(56,189,248,.24);
+    border-color:rgba(248,250,252,.12);
+  }
+  [data-theme="light"] .quick-card:hover{
+    box-shadow:0 28px 56px rgba(15,23,42,.18), 0 0 22px rgba(56,189,248,.28);
+    border-color:rgba(15,23,42,.08);
+  }
+  .quick-head{ display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; }
+  .quick-icon{
+    width:38px; height:38px; border-radius:10px;
+    display:grid; place-items:center; font-weight:700; color:#020617;
+    box-shadow:0 10px 22px rgba(15,23,42,.45), inset 0 0 0 1px rgba(255,255,255,.10);
+    background:#f9fafb;
+  }
+  [data-theme="light"] .quick-icon{
+    color:#0f172a;
+    box-shadow:0 10px 22px rgba(15,23,42,.15), inset 0 0 0 1px rgba(15,23,42,.08);
+  }
+  .quick-title{ margin:0; font-weight:700; font-size:14px; color:var(--quick-title-color); }
+  .quick-desc{ margin:2px 0 0; font-size:12px; color:var(--quick-desc-color); }
+  .badge-corner{
+    position:absolute; top:8px; right:10px; font-size:11px; font-weight:700;
+    background:rgba(2,6,23,.75); color:#e5e7eb; padding:3px 7px; border-radius:999px;
+    border:1px solid rgba(255,255,255,.12);
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:22px; height:22px;
+  }
+  [data-theme="light"] .badge-corner{
+    background:rgba(15,23,42,.08); color:#0f172a; border:1px solid rgba(15,23,42,.18);
+  }
+
+  .quick-card.cyan{
+    background:radial-gradient(circle at 0% 0%, var(--t-cyan) 0,   transparent 70%), var(--surface-soft);
+    border-color:var(--b-cyan);
+  }
+  .quick-card.green{
+    background:radial-gradient(circle at 0% 0%, var(--t-green) 0,  transparent 70%), var(--surface-soft);
+    border-color:var(--b-green);
+  }
+  .quick-card.indigo{
+    background:radial-gradient(circle at 0% 0%, var(--t-indigo) 0, transparent 70%), var(--surface-soft);
+    border-color:var(--b-indigo);
+  }
+  .quick-card.purple{
+    background:radial-gradient(circle at 0% 0%, var(--t-purple) 0, transparent 70%), var(--surface-soft);
+    border-color:var(--b-purple);
+  }
+  .quick-card.slate{
+    background:radial-gradient(circle at 0% 0%, var(--t-slate) 0,  transparent 70%), var(--surface-soft);
+    border-color:var(--b-slate);
+  }
+
+  @media (max-width:640px){
+    .hero-right{
+      width:100%;
+      justify-content:flex-start;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="screen">
+  <!-- BANNER -->
+  <section class="hero-card">
+    <div class="hero-left">
+      <div class="pfp-wrapper">
+        {% if request.user.profile and request.user.profile.photo %}
+          <img src="{{ request.user.profile.photo.url }}" alt="Foto de perfil">
+        {% else %}
+          <div class="pfp-fallback">
+            {{ request.user.first_name|default:request.user.username|first|upper }}
+          </div>
+        {% endif %}
+      </div>
+      <div class="hero-info">
+        <h2>Hola, {{ request.user.first_name|default:"Instructor" }} {{ request.user.last_name }} 👋</h2>
+        <p class="hero-meta">Rol: Instructor</p>
+        <p class="hero-meta">Correo: {{ request.user.email }}</p>
+        <a href="{% url 'core:profile_edit' %}" class="edit-btn">✏ Editar Perfil</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <button class="theme-mini-btn" id="themeToggle" title="Cambiar tema">🌗</button>
+      <a href="{% url 'core:logout' %}" class="logout-btn">⏻ Salir</a>
+    </div>
+  </section>
+
+  <!-- HORARIO EN EL ESPACIO DEL CUADRO ANTERIOR -->
+  <section class="agenda-card">
+    <div class="agenda-header">
+      <h3 class="agenda-title">Agenda del instructor</h3>
+      <p class="agenda-sub">Clases programadas para esta semana.</p>
+    </div>
+
+    <div class="agenda-grid">
+      <!-- Aquí puedes luego cambiar por tu contexto "horario" si lo pasas desde la vista -->
+      <article class="agenda-item">
+        <p class="agenda-day">Lunes • 8:00 AM</p>
+        <p class="agenda-text">Competencia: Desarrollo Web</p>
+        <p class="agenda-text">Ficha: 2487630</p>
+        <span class="agenda-tag">Presencial</span>
+      </article>
+
+      <article class="agenda-item">
+        <p class="agenda-day">Martes • 10:00 AM</p>
+        <p class="agenda-text">Competencia: Bases de Datos</p>
+        <p class="agenda-text">Ficha: 2417893</p>
+        <span class="agenda-tag">Virtual</span>
+      </article>
+
+      <article class="agenda-item">
+        <p class="agenda-day">Miércoles • 2:00 PM</p>
+        <p class="agenda-text">Competencia: POO</p>
+        <p class="agenda-text">Ficha: 2478612</p>
+        <span class="agenda-tag">Presencial</span>
+      </article>
+    </div>
+  </section>
+
+  <!-- ACCIONES RÁPIDAS -->
+  <section class="quick-grid">
+    <a class="quick-card cyan" href="{% url 'core:qr_generar' %}">
+      <span class="badge-corner">QR</span>
+      <div class="quick-head">
+        <div class="quick-icon">🧾</div>
+        <div>
+          <p class="quick-title">Generar QR</p>
+          <p class="quick-desc">Códigos para asistencia por ficha.</p>
+        </div>
+      </div>
+    </a>
+
+    <a class="quick-card green" href="{% url 'core:justificaciones_instructor' %}">
+      <div class="quick-head">
+        <div class="quick-icon">✅</div>
+        <div>
+          <p class="quick-title">Aprobar justificaciones</p>
+          <p class="quick-desc">Revisa soportes y decide rápido.</p>
+        </div>
+      </div>
+    </a>
+
+    <a class="quick-card indigo" href="{% url 'core:instructor_reportes'%} ">
+      <div class="quick-head">
+        <div class="quick-icon">📊</div>
+        <div>
+          <p class="quick-title">Reportes</p>
+          <p class="quick-desc">Descarga estadísticas limpias.</p>
+        </div>
+      </div>
+    </a>
+
+    <a class="quick-card purple" href="{% url 'core:instructor_alertas_desercion'%}">
+      <span class="badge-corner">Nuevo</span>
+      <div class="quick-head">
+        <div class="quick-icon">🔔</div>
+        <div>
+          <p class="quick-title">Alertas</p>
+          <p class="quick-desc">Configura reglas de asistencia.</p>
+        </div>
+      </div>
+    </a>
+
+    <a class="quick-card slate" href={% url 'core:instructor_historial' %} >
+      <div class="quick-head">
+        <div class="quick-icon">🗂️</div>
+        <div>
+          <p class="quick-title">Historial</p>
+          <p class="quick-desc">Consulta registros por aprendiz.</p>
+        </div>
+      </div>
+    </a>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  function particlesConfig(){
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      particles:{
+        number:{ value:60 },
+        color:{ value: isLight ? ["#64748b","#94a3b8","#475569"] : ["#22d3ee","#8b5cf6","#38bdf8"] },
+        shape:{ type:"circle" },
+        opacity:{ value: isLight ? 0.20 : 0.16 },
+        size:{ value: isLight ? 2.2 : 2.6 },
+        line_linked:{
+          enable:true,
+          distance:150,
+          color: isLight ? "#94a3b8" : "#22d3ee",
+          opacity: isLight ? 0.22 : 0.18,
+          width:1
+        },
+        move:{ enable:true, speed:1.6 }
+      },
+      interactivity:{
+        detect_on:"canvas",
+        events:{ onhover:{ enable:true, mode:"repulse" } },
+        modes:{ repulse:{ distance:110 } }
+      },
+      retina_detect:true
+    };
+  }
+
+  function applyParticles(){
+    try{
+      if(window.pJSDom && window.pJSDom.length){
+        window.pJSDom[0].pJS.fn.vendors.destroypJS();
+        window.pJSDom.length = 0;
+      }
+    }catch(_){}
+    particlesJS("particles-js", particlesConfig());
+  }
+
+  applyParticles();
+  window.addEventListener('themechange', applyParticles);
+</script>
+{% endblock %}

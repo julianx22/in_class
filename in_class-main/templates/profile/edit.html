@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Editar perfil{% endblock %}
+
+{% block head_extra %}
+<style>
+  :root{ --ok:#34d399; --p1:#60a5fa; --p2:#22d3ee; --bg:#06080d; }
+
+  #particles-js{ position:fixed; inset:0; z-index:0; background:var(--bg); }
+
+  .screen{ position:relative; z-index:1; min-height:calc(100vh - 160px);
+           display:flex; align-items:center; justify-content:center; padding:40px 16px 96px; }
+
+  .card{
+    width:min(880px, 94vw); border-radius:22px; padding:22px 20px;
+    background: rgba(12,16,24,.65);
+    border: 1px solid rgba(255,255,255,.08);
+    box-shadow:0 22px 60px rgba(0,0,0,.6), inset 0 0 0 1px rgba(255,255,255,.05);
+    backdrop-filter: blur(16px);
+    transform: translateY(10px); opacity:0;
+    transition: transform .6s cubic-bezier(.2,.7,.2,1), opacity .6s;
+  }
+  .card.in{ transform: translateY(0); opacity:1 }
+
+  .header{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:12px; }
+  .title{ font-size:20px; font-weight:800; color:#e5e7eb; margin:0; }
+  .sub{ color:#9aa5b1; font-size:13.5px; margin:0; }
+
+  form{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px; }
+  @media (max-width:760px){ form{ grid-template-columns:1fr; } }
+  .full{ grid-column:1 / -1; }
+
+  /* INPUTS mejorados */
+  .field{ position:relative; }
+  .ui-input{
+    width:100%; height:54px; border-radius:14px; background:#0b1018;
+    border:1px solid transparent;
+    padding:22px 14px 8px 42px; color:#e5e7eb; outline:none;
+    box-shadow: inset 0 0 0 1px rgba(148,163,184,.22);
+    transition: box-shadow .14s ease, transform .06s ease, background .2s, border-color .2s;
+  }
+  .ui-input:focus{
+    transform: translateY(-1px);
+    background:#0d121c;
+    border-color: transparent;
+    box-shadow:
+      inset 0 0 0 1px rgba(96,165,250,.35),
+      0 0 0 3px rgba(34,211,238,.15);
+  }
+  .label{
+    position:absolute; left:14px; top:10px; font-size:12px; color:#93a0ae; background:#0b1018;
+    padding:0 8px; border-radius:8px;
+    transform-origin:left top; transition: transform .12s ease, color .12s, background .2s;
+    pointer-events:none;
+  }
+  .field:focus-within .label{ color:#8fd3ff; background:#0d121c }
+
+  .icon-in{ position:absolute; left:14px; top:50%; transform:translateY(-6px); opacity:.75; }
+
+  .actions{ grid-column:1 / -1; display:flex; gap:10px; justify-content:flex-end; margin-top:6px; }
+  .btn{
+    height:46px; padding:0 18px; border-radius:999px; border:0; cursor:pointer; font-weight:800;
+    color:#06101a; background:linear-gradient(90deg, var(--ok), #10b981);
+    box-shadow:0 10px 24px rgba(16,185,129,.22); position:relative; overflow:hidden;
+    transition: transform .12s ease;
+  }
+  .btn:active{ transform: translateY(1px) }
+  .btn.outline{ background:#0b1018; color:#e5e7eb; border:1px solid #334155; box-shadow:none; }
+  .btn::after{ content:""; position:absolute; inset:0;
+    background: radial-gradient(140px circle at var(--mx,50%) var(--my,50%), rgba(255,255,255,.28), transparent 40%);
+    opacity:0; transition: opacity .25s ease; }
+  .btn:hover::after{ opacity:1 }
+
+  .alert, .ok{ grid-column:1 / -1; border-radius:12px; padding:10px 12px; font-size:14px; }
+  .alert{ background:#431407; border:1px solid #fdba74; color:#ffedd5; }
+  .ok{ background:#064e3b; border:1px solid #34d399; color:#d1fae5; }
+
+  .toast{ position:fixed; right:16px; bottom:16px; z-index:50; padding:12px 14px; border-radius:12px; color:#d1fae5;
+          background:#064e3b; border:1px solid #34d399; box-shadow:0 10px 24px rgba(0,0,0,.24); opacity:0; transform: translateY(8px);
+          transition: opacity .22s ease, transform .22s ease; }
+  .toast.show{ opacity:1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce){
+    .card{ transition:none; transform:none; opacity:1 }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="screen">
+  <div class="card" id="card">
+    <div class="header">
+      <div>
+        <h1 class="title">Editar perfil</h1>
+        <p class="sub">Actualiza tu información básica.</p>
+      </div>
+      <div>
+        <a class="btn outline" href="{% url 'core:home' %}">Volver</a>
+      </div>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="{% if message.tags == 'success' %}ok{% else %}alert{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      <div class="field">
+        <span class="icon-in">👤</span>
+        <label class="label">Nombre</label>
+        <input class="ui-input" type="text" name="first_name"
+               value="{{ form.first_name.value|default:request.user.first_name }}">
+        {{ form.first_name.errors }}
+      </div>
+
+      <div class="field">
+        <span class="icon-in">🧾</span>
+        <label class="label">Apellido</label>
+        <input class="ui-input" type="text" name="last_name"
+               value="{{ form.last_name.value|default:request.user.last_name }}">
+        {{ form.last_name.errors }}
+      </div>
+
+      <div class="field full">
+        <span class="icon-in">✉️</span>
+        <label class="label">Correo</label>
+        <input class="ui-input" type="email" name="email"
+               value="{{ form.email.value|default:request.user.email }}">
+        {{ form.email.errors }}
+      </div>
+
+      <div class="actions">
+        <a class="btn outline" href="{% url 'core:home' %}">Cancelar</a>
+        <button class="btn" type="submit">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="toast" class="toast">Perfil actualizado.</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  particlesJS("particles-js",{
+    particles:{
+      number:{ value:85, density:{enable:true, value_area:900}},
+      color:{ value:["#60a5fa","#22d3ee","#34d399"]},
+      shape:{ type:"circle"}, opacity:{ value:.18 }, size:{ value:2.8, random:true },
+      line_linked:{ enable:true, distance:130, color:"#22d3ee", opacity:.16, width:1 },
+      move:{ enable:true, speed:1.5, out_mode:"out" }
+    },
+    interactivity:{ events:{ onhover:{ enable:true, mode:"repulse" }}, modes:{ repulse:{ distance:110 } }},
+    retina_detect:true
+  });
+
+  // Entrada
+  requestAnimationFrame(()=> document.getElementById('card').classList.add('in'));
+
+  // labels flotantes coherentes con contenido
+  document.querySelectorAll('.field').forEach(f=>{
+    const input = f.querySelector('.ui-input');
+    const label = f.querySelector('.label');
+    const snap = ()=>{
+      if(input.value.trim()!==''){ label.style.transform='translateY(-10px) scale(.92)'; }
+      else{ label.style.transform='translateY(0) scale(1)'; }
+    };
+    input.addEventListener('focus', ()=> label.style.transform='translateY(-10px) scale(.92)');
+    input.addEventListener('blur', snap); snap();
+  });
+
+  // ripple coords
+  document.querySelectorAll('.btn').forEach(b=>{
+    b.addEventListener('pointermove', e=>{
+      const r=b.getBoundingClientRect();
+      b.style.setProperty('--mx', (e.clientX-r.left)+'px');
+      b.style.setProperty('--my', (e.clientY-r.top)+'px');
+    });
+  });
+
+  // toast si éxito
+  const okBlock = document.querySelector('.ok');
+  if(okBlock){ const t=document.getElementById('toast'); t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), 2200); }
+</script>
+{% endblock %}

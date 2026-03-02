@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Ayuda{% endblock %}
+
+{% block content %}
+<div id="particles-js" class="particles-layer"></div>
+
+<div class="page-screen">
+  <div class="help-card">
+    <h2>🛠 Ayuda / FAQ</h2>
+
+    <input type="text" class="search-box" placeholder="Busca tu pregunta...">
+
+    <div class="faq-item">
+      <div class="faq-title">¿Cómo me registro?<span>▼</span></div>
+      <div class="faq-content">Ve a la sección de Registro, completa tus datos y confirma tu correo electrónico.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-title">Olvidé mi contraseña, ¿qué hago?<span>▼</span></div>
+      <div class="faq-content">Haz clic en "Recuperar contraseña" en la página de inicio y sigue los pasos.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-title">¿Cómo contacto al soporte?<span>▼</span></div>
+      <div class="faq-content">Puedes llenar el formulario de Contacto o escribirnos al correo soporte@ejemplo.com.</div>
+    </div>
+
+    <a href="{% url 'core:contacto' %}" class="contact-button">¿No encontraste tu respuesta? Contáctanos</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block head_extra %}
+<style>
+  .particles-layer{position:fixed; inset:0; background:#1a1a1a; z-index:0;}
+  .page-screen{
+    position:relative; z-index:1;
+    min-height:calc(100vh - 160px);
+    display:flex; align-items:center; justify-content:center;
+    padding:40px 20px;
+  }
+  .help-card{
+    background:rgba(255,255,255,.08); backdrop-filter:blur(15px); border-radius:20px;
+    padding:28px; width:min(420px, 92vw);
+    box-shadow:0 10px 25px rgba(0,0,0,.35); color:#fff; text-align:center; overflow:hidden;
+  }
+  .help-card h2{ font-size:26px; margin-bottom:18px; color:#f0f0f0; text-shadow:0 0 8px rgba(255,255,255,.4); }
+  .search-box{ width:100%; padding:12px; margin-bottom:18px; border-radius:12px; border:0; outline:0; font-size:14px;
+    background:rgba(255,255,255,.15); color:#fff; }
+  .faq-item{ margin-bottom:12px; border-radius:12px; background:rgba(255,255,255,.05); overflow:hidden; transition:.3s; }
+  .faq-title{ padding:12px 15px; cursor:pointer; font-weight:500; font-size:14px; color:#3498db; display:flex; justify-content:space-between; align-items:center; }
+  .faq-content{ padding:0 15px; font-size:13px; color:#ccc; line-height:1.5; max-height:0; overflow:hidden; transition:max-height .4s ease, padding .4s ease; }
+  .faq-item.open .faq-content{ padding:10px 15px 12px; max-height:200px; }
+  .contact-button{
+    margin-top:18px; display:block; width:100%; padding:12px; border:0; border-radius:25px;
+    background:linear-gradient(90deg,#3498db,#2c3e50); color:#fff; font-size:15px; font-weight:500;
+    text-align:center; text-decoration:none; box-shadow:0 4px 15px rgba(52,152,219,.5); transition:.3s;
+  }
+  .contact-button:hover{ background:linear-gradient(90deg,#2980b9,#1a252f); transform:scale(1.03); }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+particlesJS("particles-js", {
+  particles:{ number:{value:60}, color:{value:["#3498db","#2c3e50","#1a1a1a"]},
+  shape:{type:"circle"}, opacity:{value:.2}, size:{value:3},
+  line_linked:{enable:true,distance:150,color:"#3498db",opacity:.2,width:1},
+  move:{enable:true,speed:2}},
+  interactivity:{ detect_on:"canvas", events:{ onhover:{enable:true,mode:"repulse"} },
+  modes:{ repulse:{ distance:100 } } }, retina_detect:true
+});
+
+// acordeón
+document.querySelectorAll('.faq-title').forEach(t=>{
+  t.addEventListener('click',()=>{
+    const item=t.parentElement, c=item.querySelector('.faq-content');
+    item.classList.toggle('open');
+    c.style.maxHeight = item.classList.contains('open') ? c.scrollHeight+"px" : "0";
+  });
+});
+
+// búsqueda
+const sb=document.querySelector('.search-box');
+sb.addEventListener('input',()=>{
+  const q=sb.value.toLowerCase();
+  document.querySelectorAll('.faq-item').forEach(it=>{
+    const txt=it.querySelector('.faq-title').textContent.toLowerCase();
+    it.style.display = txt.includes(q) ? 'block' : 'none';
+  });
+});
+</script>
+{% endblock %}

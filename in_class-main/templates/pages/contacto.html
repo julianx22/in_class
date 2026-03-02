@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Contacto{% endblock %}
+
+{% block head_extra %}
+<style>
+  #particles-js{ position:fixed; inset:0; background:#1a1a1a; z-index:0; }
+  .page-screen{
+    position:relative; z-index:1; min-height:calc(100vh - 160px);
+    display:flex; align-items:center; justify-content:center; padding:32px 20px;
+  }
+  .contact-card{
+    background:rgba(255,255,255,.08); backdrop-filter:blur(16px);
+    border-radius:24px; padding:30px 32px; width:min(560px, 92vw);
+    box-shadow:0 12px 28px rgba(0,0,0,.35); color:#fff; text-align:center;
+    border:1px solid rgba(255,255,255,.08); animation: pop .35s ease;
+  }
+  @keyframes pop{ from{ transform:scale(.98); opacity:.0 } to{ transform:scale(1); opacity:1 } }
+  .contact-card h2{ margin:0 0 10px; font-size:28px; letter-spacing:.2px }
+  .contact-card p{ font-size:14px; color:#cbd5e1; line-height:1.6; margin:0 0 12px; }
+
+  .contact-data{ display:grid; gap:8px; margin:12px 0 6px; }
+  .contact-data a{ color:#9ecbff; text-decoration:none; }
+  .contact-data a:hover{ text-decoration:underline; }
+
+  /* Solo 2 botones centrados */
+  .actions{
+    margin-top:16px;
+    display:flex; justify-content:center; align-items:center;
+    gap:14px; flex-wrap:wrap;
+  }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    min-width:220px; padding:12px 18px; border-radius:999px; text-decoration:none; color:#fff;
+    background:linear-gradient(90deg,#3498db,#2c3e50);
+    box-shadow:0 6px 16px rgba(52,152,219,.35);
+    transition: transform .15s ease, box-shadow .15s ease;
+    border:1px solid rgba(255,255,255,.08);
+    font-weight:600;
+  }
+  .btn:hover{ transform:translateY(-1px); box-shadow:0 10px 22px rgba(52,152,219,.45); }
+  .btn.gmail{ background:linear-gradient(90deg,#ef5350,#ab47bc); }
+  .btn.wa{ background:linear-gradient(90deg,#25D366,#128C7E); }
+
+  /* aquí el único cambio */
+  .mini{ font-size:12.5px; color:#9fb3c8; margin-top:22px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="page-screen">
+  <div class="contact-card">
+    <h2>📞 Contáctanos</h2>
+    <p>¿Tienes dudas, sugerencias o comentarios? Escríbenos o háblanos por WhatsApp.</p>
+
+    <div class="contact-data">
+      <div>Correo: <a href="mailto:inclass49@gmail.com">inclass49@gmail.com</a></div>
+      <div>WhatsApp: <a href="https://wa.me/573175846238?text=Hola%20In%20Class%2C%20necesito%20ayuda" target="_blank" rel="noopener">+57 317 584 6238</a></div>
+    </div>
+
+    <div class="actions">
+      <!-- Gmail web -->
+      <a class="btn gmail" target="_blank" rel="noopener"
+         href="https://mail.google.com/mail/?view=cm&fs=1&to=inclass49@gmail.com&su=Soporte%20In%20Class&body=Hola%2C%20necesito%20ayuda%20con...">
+        ✉️ Enviar con Gmail
+      </a>
+
+      <!-- WhatsApp directo -->
+      <a class="btn wa" target="_blank" rel="noopener"
+         href="https://wa.me/573175846238?text=Hola%20In%20Class%2C%20necesito%20ayuda">
+        💬 WhatsApp
+      </a>
+    </div>
+
+    <p class="mini">Si tardamos, estamos peleando con un bug. esperamos no perder .</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+particlesJS("particles-js",{
+  particles:{ number:{value:60}, color:{value:["#3498db","#2c3e50","#1a1a1a"]},
+  shape:{type:"circle"}, opacity:{value:.2}, size:{value:3},
+  line_linked:{enable:true,distance:150,color:"#3498db",opacity:.2,width:1},
+  move:{enable:true,speed:2}},
+  interactivity:{ detect_on:"canvas", events:{ onhover:{enable:true,mode:"repulse"} },
+  modes:{ repulse:{ distance:100 } } }, retina_detect:true
+});
+</script>
+{% endblock %}

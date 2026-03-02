@@ -1,0 +1,372 @@
+/* ===== HEADER HOME LINK SUPER BONITO ===== */
+.site-header {
+  background: #1a1f26;           /* barra superior oscura */
+  border-bottom: 1px solid rgba(0,0,0,.6);
+  box-shadow: 0 10px 30px rgba(0,0,0,.7);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  position: relative;
+  z-index: 10;
+}
+
+/* link "Inicio" con casita */
+.site-header .home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(0,140,255,.18) 0%, rgba(0,0,0,0) 60%),
+    rgba(15,23,42,.6);
+  border: 1px solid rgba(0,140,255,.5);
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+  text-decoration: none;
+  box-shadow:
+    0 12px 24px rgba(0,0,0,.8),
+    0 0 12px rgba(0,140,255,.4),
+    0 0 32px rgba(0,140,255,.2);
+  transition: all .15s ease;
+  position: relative;
+}
+
+/* glow por detrás */
+.site-header .home-link::after {
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:12px;
+  background: radial-gradient(circle at 50% 50%,
+              rgba(0,140,255,.22) 0%,
+              rgba(0,0,0,0) 70%);
+  filter: blur(10px);
+  z-index:-1;
+  opacity:.6;
+  transition:opacity .15s ease, filter .15s ease;
+}
+
+/* casita 🏠 */
+.site-header .home-emoji {
+  font-size: 15px;
+  line-height: 1;
+  filter:
+    drop-shadow(0 0 4px rgba(0,140,255,.7))
+    drop-shadow(0 0 10px rgba(0,140,255,.4));
+}
+
+/* texto "Inicio" */
+.site-header .home-text {
+  line-height: 1;
+  color:#e2e8f0;
+  text-shadow:
+    0 0 6px rgba(0,140,255,.6),
+    0 0 20px rgba(0,140,255,.3);
+}
+
+/* hover = más glow */
+.site-header .home-link:hover {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(0,140,255,.28) 0%, rgba(0,0,0,0) 60%),
+    rgba(15,23,42,.8);
+  box-shadow:
+    0 16px 32px rgba(0,0,0,.9),
+    0 0 16px rgba(0,140,255,.7),
+    0 0 44px rgba(0,140,255,.35);
+  border-color: rgba(0,140,255,.8);
+  transform: translateY(-1px) scale(1.02);
+}
+
+.site-header .home-link:hover::after {
+  opacity:1;
+  filter: blur(14px);
+}
+
+/* responsive header */
+@media (max-width:480px){
+  .site-header {
+    padding:6px 10px;
+  }
+  .site-header .home-link{
+    padding:5px 10px;
+    font-size:13px;
+    border-radius:9px;
+  }
+  .site-header .home-emoji{
+    font-size:14px;
+  }
+}
+
+/* ========================================================= */
+/* =============== LAYOUT LOGIN ============================ */
+/* ========================================================= */
+
+/* La vista de login usa toda el área entre header y footer */
+.login-root{
+  height:100%;
+  width:100%;
+}
+
+.login-layout{
+  height:100%;
+  display:flex;
+  background:#1a1a1a;
+  position:relative;
+  overflow:hidden; /* evita scroll raro */
+}
+
+/* Panel izquierdo con gradiente y logo circular */
+.login-left{
+  flex:1.6;
+  background:linear-gradient(135deg,#0f4c81 0%,#1A1A2E 50%,#2D0F3A 100%);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  clip-path: polygon(0 0, 72% 0, 90% 100%, 0% 100%);
+  position:relative;
+  padding-left: clamp(24px, 6vw, 72px);
+}
+
+/* circulito para el logo */
+.logo-wrap{
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.15);
+  box-shadow:
+    0 18px 40px rgba(0,0,0,.45),
+    inset 0 0 0 4px rgba(255,255,255,.06);
+  position: relative;
+  z-index: 1;
+}
+
+/* imagen del logo */
+.login-logo{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* recorte bonito circular sin deformar */
+  border-radius: 50%;
+  display: block;
+  position:relative;
+  z-index:1;
+}
+
+/* fallback: dibujar el logo como bg en el panel izq por si algo explota */
+.login-left::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background: url("/static/images/logo.jpg") center/260px 260px no-repeat;
+  filter:none;
+  pointer-events:none;
+  z-index:0;
+}
+
+/* Panel derecho con partículas y formulario centrado */
+.login-right{
+  flex:2.4;
+  position:relative;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden; /* sin scroll visual */
+}
+
+/* fondo animado partículas */
+#particles-js{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  opacity:.8;
+}
+
+/* contenido del login */
+.login-content{
+  position:relative;
+  z-index:1;
+  width:min(420px, 90%);
+  text-align:center;
+}
+
+.login-content h2{
+  color:#fff;
+  margin:0 0 16px;
+  font-weight:800;
+  letter-spacing:.2px;
+  text-shadow:
+    0 0 8px rgba(0,140,255,.6),
+    0 0 32px rgba(0,140,255,.3);
+}
+
+/* Formulario */
+.login-form{
+  width:100%;
+}
+
+.login-input{
+  width:100%;
+  padding:12px 14px;
+  margin-bottom:14px;
+  border-radius:999px;
+  border:1px solid #3a3f4e;
+  outline:none;
+  background:#fff;
+  color:#111;
+  font-size:14px;
+}
+
+/* Botón Acceder */
+.login-btn{
+  padding:10px 28px;
+  border-radius:999px;
+  border:none;
+  background:#fff;
+  color:#000;
+  cursor:pointer;
+  font-weight:600;
+  box-shadow:0 4px 20px rgba(255,255,255,.08);
+  font-size:14px;
+}
+.login-btn:hover{
+  filter:brightness(.95);
+}
+
+/* Mensajes de error */
+.alert-error{
+  color:#ff6666;
+  margin:8px 0;
+  font-size:13px;
+  font-weight:500;
+  text-shadow:0 0 4px rgba(255,0,0,.4);
+}
+
+/* ========================================================= */
+/* =============== BOTÓN "¿Olvidaste tu contraseña?" ======= */
+/* ========================================================= */
+
+.forgot-wrap{
+  margin-top:20px;
+  display:flex;
+  justify-content:center;
+}
+
+/* Estilo del botón glowing azul.
+   OJO: en tu HTML debe usarse class="forgot-link-btn"
+   pero por si acaso también engancho .forgot-link por compatibilidad. */
+.forgot-link-btn,
+.forgot-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  min-width:220px;
+  padding:10px 16px;
+  border-radius:999px;
+  font-size:14px;
+  font-weight:600;
+  line-height:1.2;
+  color:#e2e8f0;
+  text-decoration:none;
+  background:radial-gradient(circle at 30% 30%, rgba(0,140,255,.22) 0%, rgba(0,0,0,0) 60%) ,
+             rgba(15,23,42,.7);
+  border:1px solid rgba(0,140,255,.6);
+
+  box-shadow:
+    0 20px 40px rgba(0,0,0,.9),
+    0 0 12px rgba(0,140,255,.8),
+    0 0 48px rgba(0,140,255,.4);
+
+  position:relative;
+  text-shadow:
+    0 0 6px rgba(0,140,255,.9),
+    0 0 24px rgba(0,140,255,.5);
+  animation: glowPulse 2s infinite;
+  transition: all .15s ease;
+}
+
+/* lock emoji dentro del botón */
+.forgot-lock{
+  font-size:14px;
+  filter:
+    drop-shadow(0 0 4px rgba(0,140,255,.8))
+    drop-shadow(0 0 10px rgba(0,140,255,.5));
+}
+
+/* brillos en hover */
+.forgot-link-btn:hover,
+.forgot-link:hover{
+  background:radial-gradient(circle at 30% 30%, rgba(0,140,255,.3) 0%, rgba(0,0,0,0) 60%) ,
+             rgba(15,23,42,.9);
+  box-shadow:
+    0 28px 56px rgba(0,0,0,1),
+    0 0 16px rgba(0,140,255,.9),
+    0 0 60px rgba(0,140,255,.55);
+  border-color:rgba(0,140,255,.9);
+  transform:translateY(-1px) scale(1.03);
+}
+
+/* animación suave de respiración */
+@keyframes glowPulse{
+  0%{
+    box-shadow:
+      0 20px 40px rgba(0,0,0,.9),
+      0 0 12px rgba(0,140,255,.8),
+      0 0 48px rgba(0,140,255,.4);
+  }
+  50%{
+    box-shadow:
+      0 24px 48px rgba(0,0,0,1),
+      0 0 16px rgba(0,140,255,1),
+      0 0 60px rgba(0,140,255,.6);
+  }
+  100%{
+    box-shadow:
+      0 20px 40px rgba(0,0,0,.9),
+      0 0 12px rgba(0,140,255,.8),
+      0 0 48px rgba(0,140,255,.4);
+  }
+}
+
+/* ========================================================= */
+/* =============== RESPONSIVE ============================= */
+/* ========================================================= */
+
+@media (max-width: 900px){
+  .logo-wrap{
+    width:220px;
+    height:220px;
+  }
+}
+
+@media (max-width: 600px){
+  .logo-wrap{
+    width:180px;
+    height:180px;
+  }
+
+  .login-layout{
+    flex-direction:column;
+    clip-path:none;
+  }
+
+  .login-left{
+    flex:none;
+    width:100%;
+    clip-path:none;
+    padding:24px 0 16px;
+  }
+
+  .login-right{
+    flex:none;
+    width:100%;
+    padding:24px 0 40px;
+  }
+}

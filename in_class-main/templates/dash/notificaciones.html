@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Notificaciones{% endblock %}
+
+{% block head_extra %}
+<style>
+  :root{
+    --bg-a:#0b0f14; --bg-b:#0e1726; --text:#e5e7eb; --muted:#9aa6b2;
+    --panel:rgba(15,23,42,.62); --panel-b:rgba(148,163,184,.22);
+    --chip:rgba(255,255,255,.06);
+    --ring:0 0 0 3px rgba(34,211,238,.35);
+    --shadow:0 28px 60px rgba(0,0,0,.55), 0 0 50px rgba(34,211,238,.15);
+    --grad-a:#10b981; --grad-b:#22d3ee; --grad-c:#6366f1;
+
+    --ok: #22c55e;
+    --warn: #f59e0b;
+    --info: #38bdf8;
+    --err: #ef4444;
+  }
+  [data-theme="light"]{
+    --bg-a:#eef6ff; --bg-b:#ffffff; --text:#0f172a; --muted:#475569;
+    --panel:rgba(255,255,255,.8); --panel-b:rgba(15,23,42,.12);
+    --chip:rgba(0,0,0,.05);
+    --ring:0 0 0 3px rgba(16,185,129,.32);
+    --shadow:0 28px 60px rgba(0,0,0,.12), 0 0 30px rgba(99,102,241,.18);
+  }
+
+  html,body{ background:linear-gradient(160deg,var(--bg-a) 0%, var(--bg-b) 60%); color:var(--text); }
+  #particles-js{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+  .screen{ position:relative; z-index:1; width:min(1200px,96vw); margin:0 auto; padding:24px 12px 32px; display:grid; gap:16px; }
+
+  /* HERO */
+  .hero{
+    border-radius:20px; padding:18px;
+    background:linear-gradient(100deg,var(--grad-a),var(--grad-b),var(--grad-c));
+    border:1px solid rgba(255,255,255,.18); box-shadow:var(--shadow);
+    display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px;
+  }
+  .hero h1{ margin:0; font-size:20px; font-weight:900; color:#082f2b; }
+  .hero p{ margin:2px 0 0; font-size:12px; color:#083344; font-weight:700; opacity:.9; }
+  .hero-actions{ display:flex; gap:10px; align-items:center; }
+  .panel-btn{
+    display:inline-flex; align-items:center; gap:8px; height:40px; padding:0 14px;
+    border-radius:14px; background:#f8fafc; color:#0f172a; font-weight:900; text-decoration:none;
+    border:1px solid rgba(0,0,0,.12); box-shadow:0 10px 24px rgba(0,0,0,.18);
+  }
+
+  /* WRAP */
+  .wrap{ border-radius:18px; background:var(--panel); border:1px solid var(--panel-b);
+         box-shadow:var(--shadow); padding:14px; }
+
+  .topbar{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .chip{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px;
+    background:var(--chip); border:1px solid var(--panel-b); font-weight:900; font-size:12px; letter-spacing:.4px;
+  }
+  .btn{
+    height:38px; border-radius:12px; border:1px solid rgba(0,0,0,.25);
+    background:linear-gradient(90deg,var(--grad-a),var(--grad-b)); color:#07121e;
+    font-weight:900; padding:0 14px; cursor:pointer;
+    box-shadow:0 16px 34px rgba(0,0,0,.35);
+  }
+  .btn.ghost{ background:transparent; color:var(--text); border-color:var(--panel-b); }
+  .btn[disabled]{ opacity:.6; cursor:not-allowed; }
+
+  /* LIST */
+  .list{ display:grid; gap:10px; margin-top:12px; }
+  .item{
+    display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:flex-start;
+    padding:12px; border-radius:14px; border:1px solid var(--panel-b); background:rgba(2,6,23,.35);
+  }
+  [data-theme="light"] .item{ background:rgba(255,255,255,.75); }
+  .ico{
+    width:40px; height:40px; border-radius:12px; display:grid; place-items:center;
+    font-size:18px; font-weight:900; color:#0b0f14; box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);
+  }
+  .ico.info{    background:linear-gradient(135deg,#bae6fd,#38bdf8); }
+  .ico.warn{    background:linear-gradient(135deg,#fde68a,#f59e0b); }
+  .ico.ok{      background:linear-gradient(135deg,#bbf7d0,#22c55e); }
+  .ico.err{     background:linear-gradient(135deg,#fecaca,#ef4444); }
+  .body h4{ margin:0 0 4px; font-size:14px; font-weight:800; }
+  .body p{ margin:0; font-size:13px; color:var(--muted); }
+  .meta{ display:flex; gap:8px; align-items:center; color:var(--muted); font-size:12px; }
+  .pill{ padding:4px 8px; border-radius:999px; border:1px solid var(--panel-b); background:var(--chip); font-weight:700; }
+  .actions{ display:flex; gap:8px; align-items:center; }
+  .link{ font-size:12px; font-weight:900; text-decoration:none; color:var(--info); cursor:pointer; }
+  .ghost{ text-align:center; font-size:13px; color:var(--muted); padding:28px 8px; border:1px dashed var(--panel-b); border-radius:14px; }
+
+  /* PAGINATION */
+  .pager{ display:flex; justify-content:center; gap:8px; align-items:center; margin-top:12px; }
+  .page-dot{ padding:6px 10px; border-radius:999px; background:var(--chip); border:1px solid var(--panel-b); font-weight:800; font-size:12px; }
+
+  /* small */
+  @media(max-width:560px){
+    .item{ grid-template-columns:1fr; }
+    .actions{ justify-content:flex-end; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="screen">
+  <!-- HERO -->
+  <section class="hero">
+    <div>
+      <h1>Notificaciones</h1>
+      <p>Mira tus avisos del sistema o del instructor.</p>
+    </div>
+    <div class="hero-actions">
+      <a href="{% url 'core:dash_aprendiz' %}" class="panel-btn">← Panel</a>
+    </div>
+  </section>
+
+  <!-- CUERPO -->
+  <section class="wrap">
+    <div class="topbar">
+      <span class="chip" id="chipUnread">🔔 <strong id="unreadNum">0</strong> sin leer</span>
+      <button class="btn ghost" id="btnOnlyUnread">Solo no leídas</button>
+      <button class="btn ghost" id="btnAll">Todas</button>
+      <button class="btn" id="btnMarkAll">Marcar todas como leídas</button>
+      <span style="margin-left:auto; font-size:12px; color:var(--muted);">Autorefresco cada 10s</span>
+    </div>
+
+    <div class="list" id="list">
+      <div class="ghost">Cargando…</div>
+    </div>
+
+    <div class="pager">
+      <button class="btn ghost" id="prevBtn">« Anterior</button>
+      <span class="page-dot" id="pageNow">Página 1</span>
+      <button class="btn ghost" id="nextBtn">Siguiente »</button>
+    </div>
+
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  // Fondo
+  particlesJS("particles-js",{
+    particles:{ number:{value:60}, color:{value:["#10b981","#22d3ee","#6366f1"]},
+      shape:{type:"circle"}, opacity:{value:.16}, size:{value:3},
+      line_linked:{enable:true,distance:150,color:"#22d3ee",opacity:.16,width:1},
+      move:{enable:true,speed:1.6}},
+    interactivity:{detect_on:"canvas",events:{onhover:{enable:true,mode:"repulse"}},modes:{repulse:{distance:100}}},
+    retina_detect:true
+  });
+
+  // ====== Estado ======
+  let page = 1;
+  let pages = 1;
+  let onlyUnread = true;
+  const pageSize = 8;
+  let loading = false;
+
+  const $ = s => document.querySelector(s);
+  const listEl = $('#list');
+  const unreadNum = $('#unreadNum');
+  const pageNow = $('#pageNow');
+  const prevBtn = $('#prevBtn');
+  const nextBtn = $('#nextBtn');
+
+  const URL_LIST = "{% url 'core:api_notif_list' %}";
+  const URL_MARK = "{% url 'core:api_notif_mark_read' %}";
+  const URL_MARK_ALL = "{% url 'core:api_notif_mark_all' %}";
+  const URL_UNREAD = "{% url 'core:api_notif_unread_count' %}";
+  const CSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+  // ====== Utils ======
+  function relTime(iso){
+    if(!iso) return '';
+    const t = new Date(iso);
+    const s = Math.floor((Date.now() - t.getTime())/1000);
+    if (s < 60) return `hace ${s}s`;
+    const m = Math.floor(s/60);
+    if (m < 60) return `hace ${m}m`;
+    const h = Math.floor(m/60);
+    if (h < 24) return `hace ${h}h`;
+    const d = Math.floor(h/24);
+    return `hace ${d}d`;
+  }
+  function iconClass(tipo){
+    switch((tipo||'info').toLowerCase()){
+      case 'ok':
+      case 'success': return {emoji:'✅', cls:'ok'};
+      case 'warn':
+      case 'warning': return {emoji:'⚠️', cls:'warn'};
+      case 'error':
+      case 'err': return {emoji:'⛔', cls:'err'};
+      default: return {emoji:'ℹ️', cls:'info'};
+    }
+  }
+
+  // ====== Render ======
+  function renderRows(rows){
+    if(!rows.length){
+      listEl.innerHTML = `<div class="ghost">No hay notificaciones para mostrar.</div>`;
+      return;
+    }
+    const html = rows.map(r => {
+      const ic = iconClass(r.tipo);
+      const estado = r.leida ? '' : `<span class="pill">No leída</span>`;
+      const btn = r.leida ? '' : `<a class="link" data-action="read" data-id="${r.id}">Marcar como leída</a>`;
+      return `
+        <div class="item" data-id="${r.id}">
+          <div class="ico ${ic.cls}" title="${r.tipo}">${ic.emoji}</div>
+          <div class="body">
+            <h4>${escapeHtml(r.titulo)}</h4>
+            <p>${escapeHtml(r.cuerpo)}</p>
+            <div class="meta">
+              <span>${relTime(r.creado_en)}</span>
+              ${estado}
+            </div>
+          </div>
+          <div class="actions">${btn}</div>
+        </div>
+      `;
+    }).join('');
+    listEl.innerHTML = html;
+  }
+
+  function renderPager(){
+    pageNow.textContent = `Página ${page}`;
+    prevBtn.disabled = page <= 1;
+    nextBtn.disabled = page >= pages;
+  }
+
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, m => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[m]));
+  }
+
+  // ====== Data ======
+  async function loadList(){
+    if(loading) return;
+    loading = true;
+    listEl.innerHTML = `<div class="ghost">Cargando…</div>`;
+    try{
+      const q = new URLSearchParams({ page, page_size: pageSize, only_unread: onlyUnread ? '1':'0' });
+      const r = await fetch(`${URL_LIST}?${q}`);
+      const data = await r.json();
+      pages = Math.max(data.pages||1, 1);
+      page   = Math.min(Math.max(data.page||1,1), pages);
+      renderRows(data.rows||[]);
+      renderPager();
+      unreadNum.textContent = data.unread || 0;
+      // si existe badge global en el header, actualízalo
+      const badge = document.getElementById('notifBadge');
+      if (badge){ badge.textContent = data.unread || 0; badge.style.display = (data.unread>0?'inline-flex':'none'); }
+    }catch(e){
+      listEl.innerHTML = `<div class="ghost">Error cargando datos.</div>`;
+    }finally{
+      loading = false;
+    }
+  }
+
+  async function markAll(){
+    try{
+      $('#btnMarkAll').disabled = true;
+      await fetch(URL_MARK_ALL, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
+        body:'{}'
+      });
+    }catch(_){}
+    finally{
+      $('#btnMarkAll').disabled = false;
+      loadList();
+    }
+  }
+
+  async function markOne(id){
+    try{
+      const btn = listEl.querySelector(`[data-action="read"][data-id="${id}"]`);
+      if(btn) btn.textContent = '...';
+      await fetch(URL_MARK, {
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-CSRFToken':CSRF},
+        body: JSON.stringify({id:Number(id)||0})
+      });
+    }catch(_){}
+    finally{ loadList(); }
+  }
+
+  // ====== Events ======
+  $('#btnOnlyUnread').addEventListener('click', ()=>{ onlyUnread = true; page = 1; loadList(); });
+  $('#btnAll').addEventListener('click', ()=>{ onlyUnread = false; page = 1; loadList(); });
+  $('#btnMarkAll').addEventListener('click', markAll);
+  prevBtn.addEventListener('click', ()=>{ if(page>1){ page--; loadList(); } });
+  nextBtn.addEventListener('click', ()=>{ if(page<pages){ page++; loadList(); } });
+
+  listEl.addEventListener('click', (ev)=>{
+    const a = ev.target.closest('[data-action="read"]');
+    if(!a) return;
+    const id = a.getAttribute('data-id');
+    if(id) markOne(id);
+  });
+
+  // Auto refresh
+  setInterval(()=>{ loadList(); }, 10000);
+
+  // inicio
+  loadList();
+</script>
+{% endblock %}

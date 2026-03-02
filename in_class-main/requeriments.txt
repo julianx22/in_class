@@ -1,0 +1,9 @@
+asgiref==3.10.0
+bcrypt==5.0.0
+Django==5.2.7
+mssql-django==1.6
+passlib==1.7.4
+pyodbc==5.2.0
+pytz==2025.2
+sqlparse==0.5.3
+tzdata==2025.2

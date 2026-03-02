@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Registrar Asistencia{% endblock %}
+
+{% block head_extra %}
+<style>
+:root{
+  --bg-a:#0b1020; --bg-b:#0e1630;
+  --text:#e8edf3; --muted:#97a3b6;
+  --glass:rgba(14,22,48,.6); --glass-b:rgba(148,163,184,.22);
+  --accent:#22d3ee; --accent-2:#10b981;
+}
+[data-theme="light"]{
+  --bg-a:#eef6ff; --bg-b:#ffffff;
+  --text:#0f172a; --muted:#475569;
+  --glass:rgba(255,255,255,.7); --glass-b:rgba(0,0,0,.15);
+  --accent:#0ea5e9; --accent-2:#34d399;
+}
+
+html,body{ background:linear-gradient(160deg,var(--bg-a),var(--bg-b)); color:var(--text); }
+#particles-js{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+.screen{ position:relative; z-index:1; min-height:100%; padding:24px 14px 34px; display:flex; justify-content:center; }
+.wrap{ width:min(1200px,96vw); display:grid; gap:18px; }
+.card{ border-radius:18px; padding:18px; background:var(--glass); border:1px solid var(--glass-b); }
+.grid{ display:grid; grid-template-columns:1.05fr .95fr; gap:16px; } @media(max-width:1000px){ .grid{ grid-template-columns:1fr; } }
+.qr{ position:relative; min-height:300px; border-radius:16px; background:rgba(2,6,23,.38); border:1px dashed rgba(148,163,184,.45); display:grid; place-items:center; overflow:hidden; }
+[data-theme="light"] .qr{ background:rgba(255,255,255,.6); border-color:rgba(15,23,42,.25); }
+.chip{ display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid var(--glass-b); font-weight:900; font-size:12px; }
+[data-theme="light"] .chip{ background:rgba(0,0,0,.04); }
+.code{ font-family:ui-monospace,monospace; letter-spacing:1.8px; }
+.ui{ height:44px; border-radius:12px; padding:0 14px; border:1px solid var(--glass-b); background:rgba(2,6,23,.35); color:var(--text); width:100%; outline:none; }
+[data-theme="light"] .ui{ background:#fff; }
+.btn{ height:44px; border-radius:12px; border:1px solid rgba(0,0,0,.3); background:linear-gradient(90deg,var(--accent-2),var(--accent)); color:#07121e; font-weight:900; padding:0 16px; cursor:pointer; }
+.msg{ display:none; font-size:13px; padding:10px 12px; border-radius:10px; }
+.msg.ok{ display:block; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.38); color:#86efac; }
+.msg.err{ display:block; background:rgba(244,63,94,.10);  border:1px solid rgba(244,63,94,.35);  color:#fecaca; }
+[data-theme="light"] .msg.ok{ background:rgba(16,185,129,.10); color:#166534; }
+[data-theme="light"] .msg.err{ background:rgba(239,68,68,.08); color:#991b1b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="screen">
+  <div class="wrap">
+    <section class="card" style="background:linear-gradient(100deg,#10b981,#22d3ee,#6366f1);border:1px solid rgba(255,255,255,.22);">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div>
+          <h1 style="margin:0;font-size:20px;font-weight:900;color:#082f2b;">Registrar Asistencia</h1>
+          <p style="margin:2px 0 0;font-size:12px;color:#083344;font-weight:700;opacity:.9;">Escanea el QR del instructor o ingresa el código manualmente.</p>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button id="themeToggle" class="chip" title="Cambiar tema">🌗</button>
+          <a href="{% url 'core:dash_aprendiz' %}" class="chip" style="text-decoration:none;background:#f8fafc;color:#0f172a;border-color:rgba(0,0,0,.12);">← Panel</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="grid">
+        <div class="qr" id="qrPreview" data-empty="1">
+          <span style="color:var(--muted); font-size:13px;">Esperando código…</span>
+        </div>
+
+        <div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+            <span class="chip">🔐 Código: <span id="codigoActual" class="code">— — —</span></span>
+            <span id="liveTimer" class="chip" style="display:none;">⏱ 00:00</span>
+          </div>
+
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+            <input id="codigoManual" class="ui" placeholder="¿No puedes escanear? Escribe el código aquí…" autocomplete="off" style="flex:1;">
+            <button id="btnRegistrar" class="btn">Registrar</button>
+          </div>
+
+          <p style="margin:8px 0; font-size:12px; color:var(--muted);">Si el profe te pasa el link con el token, esta página registra sola.</p>
+          <div id="msgBox" class="msg" role="status"></div>
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  // Partículas: sensibles al tema y robustas al toggle
+  function particlesConfig(){
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      particles:{ number:{value:65},
+        color:{value: isLight ? ["#64748b","#94a3b8","#cbd5e1"] : ["#22d3ee","#10b981","#6366f1"]},
+        shape:{type:"circle"},
+        opacity:{value: isLight ? .20 : .16},
+        size:{value: isLight ? 2.4 : 2.6},
+        line_linked:{enable:true,distance:150,color:isLight?"#94a3b8":"#22d3ee",opacity:isLight?.20:.15,width:1},
+        move:{enable:true,speed:1.4}
+      },
+      interactivity:{detect_on:"canvas",events:{onhover:{enable:true,mode:"repulse"}},modes:{repulse:{distance:110}}},
+      retina_detect:true
+    };
+  }
+  function applyParticles(){
+    try{ if(window.pJSDom && pJSDom[0]){ pJSDom[0].pJS.fn.vendors.destroypJS(); pJSDom.length=0; } }catch(_){}
+    particlesJS("particles-js", particlesConfig());
+  }
+  applyParticles();
+  window.addEventListener('themechange', applyParticles);
+
+  // Helpers UI
+  const $ = s => document.querySelector(s);
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const msg = $('#msgBox'), qrBox = $('#qrPreview'), timerEl = $('#liveTimer');
+
+  function setCodeUI(code){
+    $('#codigoActual').textContent = code || '— — —';
+    qrBox.dataset.empty = code ? "0" : "1";
+    renderQR(code);
+  }
+  function renderQR(code){
+    if(!code){ qrBox.innerHTML = '<span style="color:var(--muted);font-size:13px;">Esperando código…</span>'; return; }
+    qrBox.innerHTML = "";
+    const url = new URL("{% url 'core:qr_scan_router' code='__CODE__' %}".replace('__CODE__', code), window.location.origin).toString();
+    const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text').trim() || "#0f172a";
+    new QRCode(qrBox, { text:url, width:320, height:320, colorDark:textColor, colorLight:'transparent', correctLevel:QRCode.CorrectLevel.M });
+  }
+  function toast(text, isErr){ msg.className = 'msg ' + (isErr ? 'err' : 'ok'); msg.textContent = text; }
+
+  // Registrar manual
+  $('#btnRegistrar').addEventListener('click', ()=> {
+    const token = ($('#codigoManual').value || '').trim();
+    if(!token){ toast('Ingresa un código primero.', true); return; }
+    setCodeUI(token); enviarCodigo(token);
+  });
+
+  // Auto por ?token=
+  (function(){
+    const t = new URLSearchParams(location.search).get('token');
+    if(!t) return;
+    setCodeUI(t); enviarCodigo(t);
+  })();
+
+  function enviarCodigo(token){
+    fetch("{% url 'core:registrar_asistencia_api' %}", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
+      body: JSON.stringify({ token })
+    })
+    .then(r => r.json())
+    .then(data => { if(!data.ok) throw new Error(data.msg || 'Error'); toast('Asistencia registrada ✅', false); })
+    .catch(err => toast(err.message || 'No se pudo registrar', true));
+  }
+
+  // ====== Poll del QR activo + countdown ======
+  let countdownTimer = null;
+  function startCountdown(seconds){
+    if(countdownTimer){ clearInterval(countdownTimer); countdownTimer = null; }
+    if(!(seconds > 0)){ timerEl.style.display = 'none'; return; }
+    let left = seconds;
+    timerEl.style.display = 'inline-flex';
+    timerEl.textContent = '⏱ ' + toClock(left);
+    countdownTimer = setInterval(()=>{
+      left -= 1;
+      if(left <= 0){ clearInterval(countdownTimer); timerEl.textContent = '⏱ 00:00'; return; }
+      timerEl.textContent = '⏱ ' + toClock(left);
+    }, 1000);
+  }
+  function toClock(s){ s = Math.max(0, s|0); const m = String(Math.floor(s/60)).padStart(2,'0'); const ss = String(s%60).padStart(2,'0'); return m+':'+ss; }
+
+  async function pollActive(){
+    try{
+      const r = await fetch("{% url 'core:api_qr_activo' %}");
+      const data = await r.json();
+      if(data && data.ok){
+        if($('#codigoActual').textContent !== data.code){
+          setCodeUI(data.code);
+        }
+        startCountdown(data.seconds_left || 0);
+      }else{
+        setCodeUI(null);
+        startCountdown(0);
+      }
+    }catch(_){}
+  }
+  pollActive();
+  setInterval(pollActive, 2000);
+</script>
+{% endblock %}

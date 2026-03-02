@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Justificaciones{% endblock %}
+
+{% block head_extra %}
+<style>
+  :root{
+    --bg-a:#0b0f14; --bg-b:#0e1726; --text:#e5e7eb; --muted:#9aa6b2;
+    --panel:rgba(15,23,42,.62); --panel-b:rgba(148,163,184,.22);
+    --chip:rgba(255,255,255,.06);
+    --grad-a:#10b981; --grad-b:#22d3ee; --grad-c:#6366f1;
+    --shadow:0 28px 60px rgba(0,0,0,.55), 0 0 50px rgba(34,211,238,.15);
+  }
+  [data-theme="light"]{
+    --bg-a:#eef6ff; --bg-b:#ffffff; --text:#0f172a; --muted:#475569;
+    --panel:rgba(255,255,255,.85); --panel-b:rgba(15,23,42,.12);
+    --chip:rgba(0,0,0,.05);
+    --shadow:0 28px 60px rgba(0,0,0,.12), 0 0 30px rgba(99,102,241,.18);
+  }
+  html,body{ background:linear-gradient(160deg,var(--bg-a),var(--bg-b)); color:var(--text); }
+  #particles-js{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+  .screen{ position:relative; z-index:1; width:min(1100px,96vw); margin:0 auto; padding:24px 12px 32px; display:grid; gap:16px; }
+  .hero{ border-radius:20px; padding:18px; background:linear-gradient(100deg,var(--grad-a),var(--grad-b),var(--grad-c)); border:1px solid rgba(255,255,255,.18); box-shadow:var(--shadow); display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px; }
+  .hero h1{ margin:0; font-size:20px; font-weight:900; color:#082f2b; }
+  .hero p{ margin:2px 0 0; font-size:12px; color:#083344; font-weight:700; opacity:.9; }
+  .panel-btn{ display:inline-flex; align-items:center; gap:8px; height:40px; padding:0 14px; border-radius:14px; background:#f8fafc; color:#0f172a; font-weight:900; text-decoration:none; border:1px solid rgba(0,0,0,.12); box-shadow:0 10px 24px rgba(0,0,0,.18); }
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media(max-width:900px){ .grid{ grid-template-columns:1fr; } }
+  .card{ border-radius:18px; background:var(--panel); border:1px solid var(--panel-b); box-shadow:var(--shadow); padding:14px; backdrop-filter:blur(12px) saturate(140%); -webkit-backdrop-filter:blur(12px) saturate(140%); }
+  .title{ margin:0 0 8px; font-weight:800; font-size:16px; }
+  .sub{ margin:0 0 12px; font-size:13px; color:var(--muted); }
+  .form-grid{ display:grid; gap:12px; grid-template-columns:1fr 1fr; }
+  .full{ grid-column:1/-1; }
+  label{ font-size:12px; color:var(--muted); margin-bottom:6px; display:block; }
+  .ui{ width:100%; height:44px; border-radius:12px; border:1px solid var(--panel-b); background:rgba(2,6,23,.35); color:var(--text); padding:0 12px; outline:none; }
+  textarea.ui{ height:120px; padding-top:10px; resize:vertical; }
+  .chip{ display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background:var(--chip); border:1px solid var(--panel-b); font-weight:900; font-size:12px; }
+  .btn{ height:44px; border-radius:12px; border:1px solid rgba(0,0,0,.25); background:linear-gradient(90deg,var(--grad-a),var(--grad-b)); color:#07121e; font-weight:900; padding:0 16px; cursor:pointer; box-shadow:0 16px 34px rgba(0,0,0,.35); }
+  .btn[disabled]{ opacity:.6; cursor:not-allowed; }
+  .item{ display:grid; grid-template-columns:auto 1fr; gap:12px; align-items:flex-start; padding:12px; border-radius:14px; border:1px solid var(--panel-b); background:rgba(2,6,23,.35); }
+  [data-theme="light"] .item{ background:rgba(255,255,255,.75); }
+  .ico{ width:40px; height:40px; border-radius:12px; display:grid; place-items:center; font-size:18px; font-weight:900; color:#0b0f14; box-shadow:inset 0 0 0 1px rgba(255,255,255,.12); background:linear-gradient(135deg,#ddd6fe,#a78bfa); }
+  .body h4{ margin:0 0 4px; font-size:14px; font-weight:800; }
+  .body p{ margin:0; font-size:13px; color:var(--muted); }
+  .badge{ padding:4px 8px; border-radius:999px; border:1px solid var(--panel-b); font-weight:800; font-size:12px; }
+  .Pendiente{ background:#fde68a22; color:#f59e0b; border-color:#f59e0b55; }
+  .Aprobado{ background:#bbf7d022; color:#22c55e; border-color:#22c55e55; }
+  .Rechazado{ background:#fecaca22; color:#ef4444; border-color:#ef444455; }
+  .ghost{ text-align:center; font-size:13px; color:var(--muted); padding:24px 8px; border:1px dashed var(--panel-b); border-radius:14px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="screen">
+  <section class="hero">
+    <div>
+      <h1>Justificaciones</h1>
+      <p>Envía tu soporte por fecha. Si aprueban, tu asistencia queda “Justificado”.</p>
+    </div>
+    <div>
+      <a href="{% url 'core:dash_aprendiz' %}" class="panel-btn">← Panel</a>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <h3 class="title">Nueva justificación</h3>
+      <p class="sub">Motivo, fecha de inasistencia, instructor y adjunto (opcional).</p>
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+      <div class="form-grid">
+        <div class="full">
+          <label for="motivo">Motivo</label>
+          <input id="motivo" class="ui" placeholder="Ej: cita médica, calamidad, transporte…">
+        </div>
+        <div>
+          <label for="fecha">Fecha de inasistencia</label>
+          <input id="fecha" type="date" class="ui">
+        </div>
+        <div>
+          <label for="instructor">Instructor</label>
+          <select id="instructor" class="ui">
+            <option value="">Cargando instructores…</option>
+          </select>
+        </div>
+        <div>
+          <label for="adjunto">Adjunto (opcional)</label>
+          <input id="adjunto" type="file" class="ui" accept=".pdf,.jpg,.jpeg,.png">
+        </div>
+        <div class="full">
+          <label for="observacion">Observación (opcional)</label>
+          <textarea id="observacion" class="ui" placeholder="Detalles…"></textarea>
+        </div>
+
+        <div class="full" style="display:flex;gap:10px;align-items:center;">
+          <button id="btnEnviar" class="btn">Enviar</button>
+          <span id="msg" class="chip" style="display:none;"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="title">Mis solicitudes</h3>
+      <p class="sub">Se refresca cada 10s.</p>
+      <div id="list"></div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  function particlesConfig(){
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      particles:{ number:{value:60},
+        color:{value:isLight?["#475569","#64748b","#334155"]:["#10b981","#22d3ee","#6366f1"]},
+        shape:{type:"circle"}, opacity:{value:isLight?0.22:0.18}, size:{value:isLight?2.2:3},
+        line_linked:{enable:true,distance:150,color:isLight?"#64748b":"#22d3ee",opacity:isLight?0.22:0.16,width:1},
+        move:{enable:true,speed:1.6}
+      },
+      interactivity:{detect_on:"canvas",events:{onhover:{enable:true,mode:"repulse"}},modes:{repulse:{distance:110}}},
+      retina_detect:true
+    };
+  }
+  function applyParticles(){
+    try{ if(window.pJSDom && pJSDom[0]){ pJSDom[0].pJS.fn.vendors.destroypJS(); pJSDom.length=0; } }catch(_){}
+    particlesJS("particles-js", particlesConfig());
+  }
+  applyParticles();
+  document.getElementById('themeToggle')?.addEventListener('click', ()=> setTimeout(applyParticles, 0));
+
+  const $ = s => document.querySelector(s);
+  const listEl = $('#list');
+  const msgEl = $('#msg');
+  const CSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const instructorSel = $('#instructor');
+
+  function flash(text, ok=true){
+    msgEl.style.display = 'inline-flex';
+    msgEl.textContent = text;
+    msgEl.style.borderColor = ok ? 'rgba(34,197,94,.45)' : 'rgba(239,68,68,.45)';
+    msgEl.style.color = ok ? '#bbf7d0' : '#fecaca';
+    msgEl.style.background = ok ? 'rgba(16,185,129,.12)' : 'rgba(244,63,94,.10)';
+    setTimeout(()=>{ msgEl.style.display='none'; }, 3000);
+  }
+
+  async function cargarInstructores(){
+    try{
+      const r = await fetch("{% url 'core:justif_instructores_aprendiz_api' %}");
+      const data = await r.json();
+      const rows = data.rows || [];
+
+      if(!rows.length){
+        instructorSel.innerHTML = `<option value="">No tienes instructores asignados.</option>`;
+        return;
+      }
+
+      instructorSel.innerHTML = `<option value="">Selecciona un instructor…</option>`;
+      rows.forEach(row=>{
+        const opt = document.createElement('option');
+        opt.value = row.id;
+        const tipo = row.tipo ? ` • ${row.tipo}` : '';
+        const tri  = row.trimestre ? ` • ${row.trimestre}` : '';
+        opt.textContent = `${row.nombre}${tipo}${tri}`;
+        instructorSel.appendChild(opt);
+      });
+    }catch(e){
+      instructorSel.innerHTML = `<option value="">Error cargando instructores</option>`;
+    }
+  }
+
+  async function cargarLista(){
+    try{
+      const r = await fetch("{% url 'core:justif_list_api' %}");
+      const data = await r.json();
+      renderRows(data.rows || []);
+    }catch(e){
+      listEl.innerHTML = `<div class="ghost">Error cargando.</div>`;
+    }
+  }
+
+  function renderRows(rows){
+    if(!rows.length){
+      listEl.innerHTML = `<div class="ghost">Aún no has enviado justificaciones.</div>`;
+      return;
+    }
+    listEl.innerHTML = rows.map(r => `
+      <div class="item">
+        <div class="ico">📄</div>
+        <div class="body">
+          <h4>${escapeHtml(r.motivo)} <span class="badge ${r.estado}">${r.estado}</span></h4>
+          <p>${escapeHtml(r.observacion || '')}</p>
+          <p style="margin-top:6px;color:#aab7c5;">Inasistencia: ${r.fecha_inasistencia} • Envío: ${r.fecha_envio}</p>
+          ${r.adjunto ? `<p style="margin-top:6px;"><a href="${mediaUrl(r.adjunto)}" target="_blank" rel="noreferrer">Ver adjunto</a></p>` : ``}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function escapeHtml(s){return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));}
+  function mediaUrl(rel){ if(!rel) return '#'; return window.location.origin + '/media/' + rel.replace(/^\/+/, ''); }
+
+  // Enviar
+  $('#btnEnviar').addEventListener('click', async ()=>{
+    const motivo = ($('#motivo').value || '').trim();
+    const fecha  = $('#fecha').value;
+    const observacion = ($('#observacion').value || '').trim();
+    const adj = $('#adjunto').files[0];
+    const instructorId = instructorSel.value;
+
+    if(!motivo || !fecha){
+      flash('Completa motivo y fecha.', false); return;
+    }
+    if(!instructorId){
+      flash('Selecciona el instructor.', false); return;
+    }
+
+    const fd = new FormData();
+    fd.append('motivo', motivo);
+    fd.append('fecha', fecha);
+    fd.append('observacion', observacion);
+    fd.append('instructor', instructorId);
+    if(adj) fd.append('adjunto', adj);
+
+    try{
+      $('#btnEnviar').disabled = true;
+      const r = await fetch("{% url 'core:justif_create_api' %}", {
+        method:'POST',
+        headers: { 'X-CSRFToken': CSRF },
+        body: fd
+      });
+      const data = await r.json();
+      if(!data.ok) throw new Error(data.msg || 'Error');
+      flash('Enviada. Te avisamos cuando la revisen.', true);
+      $('#motivo').value=''; $('#observacion').value=''; $('#fecha').value=''; $('#adjunto').value='';
+      instructorSel.selectedIndex = 0;
+      cargarLista();
+    }catch(e){
+      flash(e.message || 'No se pudo enviar.', false);
+    }finally{
+      $('#btnEnviar').disabled = false;
+    }
+  });
+
+  cargarLista();
+  setInterval(cargarLista, 10000);
+  cargarInstructores();
+</script>
+{% endblock %}

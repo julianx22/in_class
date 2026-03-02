@@ -1,0 +1,637 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Historial de Asistencia{% endblock %}
+
+{% block head_extra %}
+<style>
+  :root{
+    --bg-a:#020617;
+    --bg-b:#020617;
+    --text-main:#e5e7eb;
+    --text-dim:#9ca3af;
+
+    --panel-bg:rgba(15,23,42,.86);
+    --panel-border:rgba(148,163,184,.38);
+    --panel-shadow:0 26px 70px rgba(0,0,0,.8);
+
+    --accent-a:#22c55e;
+    --accent-b:#22d3ee;
+    --accent-c:#6366f1;
+
+    --card-soft:#020617;
+    --line-soft:rgba(148,163,184,.35);
+
+    --good:#22c55e;
+    --bad:#ef4444;
+    --mid:#eab308;
+  }
+  [data-theme="light"]{
+    --bg-a:#eef2ff;
+    --bg-b:#ffffff;
+    --text-main:#020617;
+    --text-dim:#6b7280;
+
+    --panel-bg:rgba(255,255,255,.96);
+    --panel-border:rgba(148,163,184,.6);
+    --panel-shadow:0 20px 45px rgba(15,23,42,.18);
+
+    --card-soft:#f9fafb;
+    --line-soft:rgba(148,163,184,.45);
+  }
+
+  html,body{
+    background:
+      radial-gradient(circle at 8% -10%, rgba(34,211,238,.18) 0%, transparent 60%),
+      radial-gradient(circle at 92% 20%, rgba(96,165,250,.18) 0%, transparent 55%),
+      linear-gradient(160deg, var(--bg-a) 0%, var(--bg-b) 60%);
+    color:var(--text-main);
+  }
+
+  #particles-js{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+  }
+
+  .screen{
+    position:relative; z-index:1;
+    width:min(1180px,96vw);
+    margin:0 auto;
+    padding:24px 12px 32px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    height:calc(100vh - 160px);
+    overflow-y:auto;
+
+    scrollbar-width:thin;
+    scrollbar-color:rgba(56,189,248,.7) transparent;
+  }
+  .screen::-webkit-scrollbar{ width:6px; }
+  .screen::-webkit-scrollbar-thumb{
+    border-radius:999px;
+    background:linear-gradient(180deg,var(--accent-b),var(--accent-c));
+  }
+
+  /* HERO */
+  .hero{
+    border-radius:18px;
+    padding:16px 18px;
+    background:linear-gradient(100deg,var(--accent-a) 0%,var(--accent-b) 45%,var(--accent-c) 100%);
+    border:1px solid rgba(255,255,255,.24);
+    box-shadow:0 26px 60px rgba(0,0,0,.9);
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    animation:heroPop .45s ease both;
+  }
+  .hero-main h1{
+    margin:0;
+    font-size:18px;
+    font-weight:900;
+    letter-spacing:.2px;
+    color:#022c22;
+  }
+  .hero-main p{
+    margin:3px 0 0;
+    font-size:12px;
+    font-weight:700;
+    color:#064e3b;
+    opacity:.95;
+  }
+  .hero-actions{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .theme-mini-btn{
+    border-radius:999px;
+    border:1px solid rgba(0,0,0,.4);
+    background:rgba(15,23,42,.95);
+    color:#e5e7eb;
+    width:38px;
+    height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:16px;
+    cursor:pointer;
+    box-shadow:0 16px 34px rgba(0,0,0,.7);
+  }
+  [data-theme="light"] .theme-mini-btn{
+    background:#ffffff;
+    color:#0f172a;
+  }
+  .back-btn{
+    border-radius:999px;
+    border:1px solid rgba(0,0,0,.25);
+    background:#f8fafc;
+    color:#0f172a;
+    font-size:12px;
+    font-weight:800;
+    padding:8px 12px;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    box-shadow:0 18px 34px rgba(15,23,42,.35);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .back-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 22px 40px rgba(15,23,42,.45);
+  }
+
+  /* PANEL */
+  .panel{
+    border-radius:18px;
+    background:var(--panel-bg);
+    border:1px solid var(--panel-border);
+    box-shadow:var(--panel-shadow);
+    padding:14px 14px 16px;
+    backdrop-filter:blur(14px) saturate(150%);
+    -webkit-backdrop-filter:blur(14px) saturate(150%);
+    animation:panelFloat .5s ease both;
+  }
+
+  .panel-header{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:10px;
+  }
+  .panel-title{
+    font-size:14px;
+    font-weight:800;
+  }
+  .panel-sub{
+    font-size:12px;
+    color:var(--text-dim);
+  }
+
+  /* FILTROS */
+  .filter-bar{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px;
+    margin-bottom:12px;
+  }
+  @media(max-width:900px){
+    .filter-bar{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
+  @media(max-width:520px){
+    .filter-bar{ grid-template-columns:1fr; }
+  }
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .field label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--text-dim);
+  }
+  .field input,
+  .field select{
+    height:38px;
+    border-radius:11px;
+    border:1px solid rgba(148,163,184,.6);
+    background:rgba(15,23,42,.9);
+    color:var(--text-main);
+    font-size:13px;
+    padding:0 10px;
+    outline:none;
+    transition:border-color .12s ease, box-shadow .12s ease, background .12s ease;
+  }
+  [data-theme="light"] .field input,
+  [data-theme="light"] .field select{
+    background:#ffffff;
+  }
+  .field input:focus,
+  .field select:focus{
+    border-color:var(--accent-b);
+    box-shadow:0 0 0 3px rgba(34,211,238,.35);
+  }
+
+  .filter-actions{
+    display:flex;
+    gap:6px;
+    align-items:flex-end;
+    flex-wrap:wrap;
+  }
+  .btn{
+    height:38px;
+    border-radius:11px;
+    border:1px solid rgba(0,0,0,.35);
+    padding:0 12px;
+    font-size:12px;
+    font-weight:800;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+  }
+  .btn-main{
+    background:linear-gradient(90deg,var(--accent-a),var(--accent-b));
+    color:#022c22;
+    box-shadow:0 16px 30px rgba(0,0,0,.7);
+  }
+  .btn-ghost{
+    background:transparent;
+    color:var(--text-main);
+    border-color:rgba(148,163,184,.7);
+  }
+
+  /* RESUMEN */
+  .resume-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:10px;
+    margin-bottom:8px;
+  }
+  @media(max-width:900px){
+    .resume-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  }
+  @media(max-width:520px){
+    .resume-grid{ grid-template-columns:1fr; }
+  }
+
+  .resume-card{
+    border-radius:14px;
+    padding:10px 12px;
+    background:radial-gradient(circle at 0% 0%, rgba(15,23,42,.9) 0%, rgba(15,23,42,.35) 55%), var(--card-soft);
+    border:1px solid var(--line-soft);
+    box-shadow:0 16px 34px rgba(0,0,0,.75);
+  }
+  [data-theme="light"] .resume-card{
+    background:radial-gradient(circle at 0% 0%, rgba(219,234,254,.9) 0%, rgba(255,255,255,1) 55%), var(--card-soft);
+  }
+  .resume-label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--text-dim);
+    margin-bottom:3px;
+  }
+  .resume-value{
+    font-size:16px;
+    font-weight:900;
+  }
+  .resume-pill{
+    font-size:11px;
+    margin-top:2px;
+    color:var(--text-dim);
+  }
+
+  /* LISTA */
+  .list{
+    margin-top:6px;
+    display:grid;
+    gap:8px;
+  }
+  .item{
+    border-radius:14px;
+    padding:9px 11px;
+    border:1px solid rgba(148,163,184,.4);
+    background:rgba(15,23,42,.9);
+    display:grid;
+    grid-template-columns:150px 1fr 100px;
+    gap:8px;
+    align-items:flex-start;
+    animation:itemIn .22s ease both;
+  }
+  [data-theme="light"] .item{
+    background:rgba(255,255,255,.96);
+  }
+  @media(max-width:900px){
+    .item{ grid-template-columns:1fr; }
+  }
+
+  .item-head{
+    font-size:12px;
+    color:var(--text-dim);
+  }
+  .item-head strong{
+    display:block;
+    font-size:13px;
+    color:var(--text-main);
+  }
+
+  .item-body{
+    font-size:12.5px;
+    color:var(--text-main);
+  }
+  .item-body .estado-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:3px 8px;
+    border-radius:999px;
+    font-size:11px;
+    font-weight:700;
+  }
+  .estado-ok{
+    background:rgba(34,197,94,.16);
+    color:var(--good);
+    border:1px solid rgba(34,197,94,.5);
+  }
+  .estado-bad{
+    background:rgba(239,68,68,.16);
+    color:var(--bad);
+    border:1px solid rgba(239,68,68,.5);
+  }
+  .estado-mid{
+    background:rgba(234,179,8,.16);
+    color:var(--mid);
+    border:1px solid rgba(234,179,8,.5);
+  }
+
+  .item-change{
+    font-size:12px;
+    margin-top:5px;
+    padding:5px 7px;
+    border-radius:10px;
+    border:1px dashed rgba(148,163,184,.7);
+    background:rgba(15,23,42,.75);
+  }
+  [data-theme="light"] .item-change{
+    background:rgba(241,245,249,.96);
+  }
+  .item-change span{
+    font-family:ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size:12px;
+  }
+
+  .item-meta{
+    font-size:11px;
+    text-align:right;
+    color:var(--text-dim);
+  }
+
+  .ghost{
+    text-align:center;
+    font-size:13px;
+    color:var(--text-dim);
+    padding:20px 8px;
+    border-radius:14px;
+    border:1px dashed rgba(148,163,184,.6);
+  }
+
+  @keyframes heroPop{
+    0%{opacity:0;transform:translateY(14px) scale(.97)}
+    60%{opacity:1;transform:translateY(-2px) scale(1.01)}
+    100%{opacity:1;transform:translateY(0) scale(1)}
+  }
+  @keyframes panelFloat{
+    0%{opacity:0;transform:translateY(20px) scale(.97)}
+    100%{opacity:1;transform:translateY(0) scale(1)}
+  }
+  @keyframes itemIn{
+    from{opacity:0;transform:translateY(6px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="screen">
+
+  <section class="hero">
+    <div class="hero-main">
+      <h1>Historial de asistencia</h1>
+      <p>Consulta tus marcas, estados y cambios realizados por el instructor.</p>
+    </div>
+    <div class="hero-actions">
+      <button class="theme-mini-btn" id="themeToggle" title="Cambiar tema">🌗</button>
+      <a href="{% url 'core:dash_aprendiz' %}" class="back-btn">
+        <span>⬅</span><span>Volver al panel</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header">
+      <div class="panel-title">Filtros</div>
+      <div class="panel-sub">Ajusta las fechas o el estado para acotar tu historial.</div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="field">
+        <label for="fDesde">Desde</label>
+        <input type="date" id="fDesde">
+      </div>
+      <div class="field">
+        <label for="fHasta">Hasta</label>
+        <input type="date" id="fHasta">
+      </div>
+      <div class="field">
+        <label for="fEstado">Estado</label>
+        <select id="fEstado">
+          <option value="todos">Todos</option>
+          <option value="Presente">Presente</option>
+          <option value="Ausente">Ausente</option>
+          <option value="Tarde">Tarde</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-main" id="btnFiltrar">🔎 Aplicar</button>
+        <button class="btn btn-ghost" id="btnLimpiar">⟲ Limpiar</button>
+      </div>
+    </div>
+
+    <div class="resume-grid">
+      <div class="resume-card">
+        <div class="resume-label">Registros</div>
+        <div class="resume-value" id="resTotal">0</div>
+        <div class="resume-pill">Total en el rango</div>
+      </div>
+      <div class="resume-card">
+        <div class="resume-label">Presente</div>
+        <div class="resume-value" id="resPresente">0</div>
+        <div class="resume-pill" style="color:var(--good);">Asistencias</div>
+      </div>
+      <div class="resume-card">
+        <div class="resume-label">Ausente</div>
+        <div class="resume-value" id="resAusente">0</div>
+        <div class="resume-pill" style="color:var(--bad);">Faltas</div>
+      </div>
+      <div class="resume-card">
+        <div class="resume-label">Tarde</div>
+        <div class="resume-value" id="resTarde">0</div>
+        <div class="resume-pill" style="color:var(--mid);">Llegadas tarde</div>
+      </div>
+    </div>
+
+    <div class="list" id="histList">
+      <div class="ghost">Cargando historial…</div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  // ===== Partículas que NO se mueren al cambiar tema =====
+  function particlesConfig(){
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      particles:{
+        number:{value:60},
+        color:{value: isLight ? ["#64748b","#94a3b8","#cbd5e1"] : ["#22c55e","#22d3ee","#6366f1"]},
+        shape:{type:"circle"},
+        opacity:{value: isLight ? 0.22 : 0.16},
+        size:{value: isLight ? 2.2 : 3},
+        line_linked:{
+          enable:true,
+          distance:150,
+          color:isLight ? "#94a3b8" : "#22d3ee",
+          opacity:isLight ? 0.22 : 0.16,
+          width:1
+        },
+        move:{enable:true,speed:1.6}
+      },
+      interactivity:{
+        detect_on:"canvas",
+        events:{onhover:{enable:true,mode:"repulse"}},
+        modes:{repulse:{distance:110}}
+      },
+      retina_detect:true
+    };
+  }
+  function applyParticles(){
+    try{
+      if(window.pJSDom && window.pJSDom[0]){
+        window.pJSDom[0].pJS.fn.vendors.destroypJS();
+        window.pJSDom.length = 0;
+      }
+    }catch(_){}
+    particlesJS("particles-js", particlesConfig());
+  }
+  applyParticles();
+
+  // Re-dibujar partículas al cambiar tema (si tu base.html cambia data-theme)
+  document.getElementById('themeToggle')?.addEventListener('click', ()=>{
+    setTimeout(applyParticles, 0);
+  });
+
+  // ===== Helpers UI =====
+  const $ = s => document.querySelector(s);
+  const listEl = $('#histList');
+
+  function estadoClass(estado){
+    const e = (estado || '').toLowerCase();
+    if(e.startsWith('pres')) return 'estado-ok';
+    if(e.startsWith('aus'))  return 'estado-bad';
+    if(e.startsWith('tar'))  return 'estado-mid';
+    return 'estado-ok';
+  }
+
+  function fmtFecha(fechaIso){
+    if(!fechaIso) return '';
+    try{
+      const d = new Date(fechaIso);
+      return d.toISOString().slice(0,10);
+    }catch(_){ return fechaIso; }
+  }
+  function fmtFechaHora(fechaIso, hora){
+    if(!fechaIso && !hora) return '';
+    const f = fmtFecha(fechaIso);
+    return f + (hora ? ` ${hora}` : '');
+  }
+
+  function renderResumen(res){
+    if(!res) return;
+    document.getElementById('resTotal').textContent    = res.total     ?? 0;
+    document.getElementById('resPresente').textContent = res.presentes ?? 0;
+    document.getElementById('resAusente').textContent  = res.ausentes  ?? 0;
+    document.getElementById('resTarde').textContent    = res.tardes    ?? 0;
+  }
+
+  function renderList(rows){
+    if(!rows || !rows.length){
+      listEl.innerHTML = '<div class="ghost">No hay registros para los filtros seleccionados.</div>';
+      return;
+    }
+    const html = rows.map((r,idx)=>{
+      const cambio = r.cambio;
+      let cambioHtml = '';
+      if(cambio){
+        cambioHtml = `
+          <div class="item-change">
+            <div style="font-size:11px;opacity:.8;margin-bottom:2px;">Cambio en <strong>${cambio.campo}</strong></div>
+            <div><span>${cambio.antes ?? '—'}</span> → <span>${cambio.despues ?? '—'}</span></div>
+          </div>
+        `;
+      }
+      const clsEstado = estadoClass(r.estado);
+      const delay = idx * 40;
+      return `
+        <div class="item" style="animation-delay:${delay}ms">
+          <div class="item-head">
+            <strong>${fmtFechaHora(r.fecha, r.hora)}</strong>
+            Programa: ${r.programa || '—'}<br>
+            Ficha ${r.ficha || '—'} • ${r.jornada || '—'}
+          </div>
+          <div class="item-body">
+            <div class="estado-pill ${clsEstado}">
+              <span>${r.estado || 'Sin estado'}</span>
+              ${r.codigo ? `<span style="opacity:.8;font-size:10px;">QR ${r.codigo}</span>` : ''}
+            </div>
+            ${cambioHtml}
+          </div>
+          <div class="item-meta">
+            ID: ${r.id}
+          </div>
+        </div>
+      `;
+    }).join('');
+    listEl.innerHTML = html;
+  }
+
+  const URL_API = "{% url 'core:historial_asistencia_api' %}";
+
+  async function loadHistorial(){
+    const desde  = document.getElementById('fDesde').value;
+    const hasta  = document.getElementById('fHasta').value;
+    const estado = document.getElementById('fEstado').value;
+
+    const q = new URLSearchParams();
+    if(desde) q.append('desde', desde);
+    if(hasta) q.append('hasta', hasta);
+    if(estado) q.append('estado', estado);
+
+    listEl.innerHTML = '<div class="ghost">Cargando historial…</div>';
+
+    try{
+      const r = await fetch(`${URL_API}?${q.toString()}`);
+      const data = await r.json();
+      // AQUÍ estaba el bug: el backend envía "stats", no "resumen"
+      renderResumen(data.stats || null);
+      renderList(data.rows || []);
+    }catch(_e){
+      listEl.innerHTML = '<div class="ghost">Error cargando el historial.</div>';
+    }
+  }
+
+  // Eventos filtros
+  document.getElementById('btnFiltrar').addEventListener('click', ()=> loadHistorial());
+  document.getElementById('btnLimpiar').addEventListener('click', ()=>{
+    document.getElementById('fDesde').value = '';
+    document.getElementById('fHasta').value = '';
+    document.getElementById('fEstado').value = 'todos';
+    loadHistorial();
+  });
+
+  // Primer load
+  loadHistorial();
+</script>
+{% endblock %}

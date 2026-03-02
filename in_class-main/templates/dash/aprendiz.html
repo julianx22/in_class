@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Perfil del Aprendiz{% endblock %}
+
+{% block head_extra %}
+<style>
+  :root{
+    --bg:#020617; --text:#e5e7eb; --muted:#9aa6b2;
+    --grad-a:#0ea5e9; --grad-b:#6366f1;
+
+    --surface:#020617; --surface-soft:#020617;
+    --surface-border:rgba(148,163,184,.18);
+    --surface-glow:rgba(99,102,241,.22);
+
+    --t-cyan:rgba(56,189,248,.12);   --b-cyan:rgba(56,189,248,.32);
+    --t-green:rgba(34,197,94,.12);   --b-green:rgba(34,197,94,.32);
+    --t-indigo:rgba(99,102,241,.12); --b-indigo:rgba(99,102,241,.32);
+    --t-purple:rgba(168,85,247,.12); --b-purple:rgba(168,85,247,.32);
+    --t-slate:rgba(148,163,184,.10); --b-slate:rgba(148,163,184,.28);
+
+    --quick-title-color:#f1f5f9; --quick-desc-color:#aab7c5;
+    --card-text-strong:#f1f5f9; --card-text-soft:#aab7c5;
+  }
+  [data-theme="light"]{
+    --bg:#f6f8fb; --text:#0f172a; --muted:#475569;
+    --grad-a:#4ade80; --grad-b:#60a5fa;
+
+    --surface:#ffffff; --surface-soft:#ffffff;
+    --surface-border:rgba(0,0,0,.07); --surface-glow:rgba(16,185,129,.08);
+
+    --t-cyan:rgba(56,189,248,.10);   --b-cyan:rgba(56,189,248,.4);
+    --t-green:rgba(34,197,94,.10);   --b-green:rgba(34,197,94,.4);
+    --t-indigo:rgba(99,102,241,.10); --b-indigo:rgba(99,102,241,.4);
+    --t-purple:rgba(168,85,247,.10); --b-purple:rgba(168,85,247,.4);
+    --t-slate:rgba(148,163,184,.08); --b-slate:rgba(148,163,184,.35);
+
+    --quick-title-color:#0f172a; --quick-desc-color:#475569;
+    --card-text-strong:#0f172a; --card-text-soft:#475569;
+  }
+
+  html, body{ background:var(--bg); color:var(--text); }
+
+  #particles-js{
+    position:fixed; inset:0;
+    background:transparent;
+    z-index:0;
+    pointer-events:none;
+  }
+
+  .screen{
+    position:relative; z-index:1; width:100%; max-width:1100px;
+    margin:0 auto; padding:32px 16px 32px;
+    height:calc(100vh - 160px); overflow-y:auto;
+    display:flex; flex-direction:column; gap:24px;
+    scrollbar-width:thin;
+    scrollbar-color:rgba(99,102,241,.6) rgba(15,23,42,.6);
+  }
+  .screen::-webkit-scrollbar{ width:6px; }
+  .screen::-webkit-scrollbar-track{ background:rgba(15,23,42,.6); border-radius:999px; }
+  .screen::-webkit-scrollbar-thumb{
+    background:linear-gradient(var(--grad-a),var(--grad-b));
+    border-radius:999px;
+  }
+  [data-theme="light"] .screen{
+    scrollbar-color:rgba(16,185,129,.6) rgba(226,232,240,.6);
+  }
+  [data-theme="light"] .screen::-webkit-scrollbar-track{
+    background:rgba(226,232,240,.6);
+  }
+  [data-theme="light"] .screen::-webkit-scrollbar-thumb{
+    background:linear-gradient(var(--grad-a),var(--grad-b));
+  }
+
+  /* HERO */
+  .hero-card{
+    border-radius:16px;
+    background:linear-gradient(90deg,var(--grad-a) 0%, var(--grad-b) 100%);
+    box-shadow:0 26px 48px rgba(0,0,0,.55);
+    border:1px solid rgba(255,255,255,.16);
+    padding:20px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    animation:slideUp .5s ease both;
+  }
+  .hero-left{ display:flex; gap:16px; flex:1 1 auto; min-width:260px; }
+  .pfp-wrapper{
+    width:84px; height:84px; border-radius:50%;
+    border:3px solid rgba(255,255,255,.65);
+    box-shadow:0 12px 30px rgba(0,0,0,.45), 0 0 12px rgba(255,255,255,.22) inset;
+    overflow:hidden; background:#065f46;
+    flex-shrink:0; display:grid; place-items:center;
+  }
+  .pfp-wrapper img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .pfp-fallback{
+    width:100%; height:100%; display:grid; place-items:center;
+    font:700 28px/1.1 ui-sans-serif,system-ui; color:#fff; text-transform:uppercase;
+    background:radial-gradient(120px at 30% 30%, #34d399 0%, #065f46 70%);
+  }
+  [data-theme="light"] .pfp-fallback{
+    background:radial-gradient(120px at 30% 30%, #34d399 0%, #0ea5e9 70%);
+    color:#0f172a;
+  }
+  .hero-info{ display:flex; flex-direction:column; justify-content:center; }
+  .hero-info h2{
+    margin:0 0 4px;
+    font-weight:800; font-size:18px; letter-spacing:.2px; color:#fff;
+  }
+  [data-theme="light"] .hero-info h2{ color:#0f172a; }
+  .hero-meta{ margin:0; font-size:13px; color:#eef2ff; }
+  [data-theme="light"] .hero-meta{ color:#334155; }
+
+  .edit-btn{
+    margin-top:10px; display:inline-flex; align-items:center; gap:6px;
+    border-radius:999px; border:1px solid rgba(0,0,0,.15);
+    background:#fff; color:#0f172a;
+    font-weight:700; font-size:13px;
+    padding:8px 12px; text-decoration:none;
+    box-shadow:0 10px 22px rgba(0,0,0,.3);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .edit-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 16px 28px rgba(0,0,0,.4);
+  }
+
+  .hero-right{
+    flex-shrink:0; display:flex;
+    align-items:flex-start; justify-content:flex-end; gap:10px;
+  }
+  .theme-mini-btn{
+    border-radius:999px; border:1px solid rgba(0,0,0,.25);
+    background:#1f2937; color:#fff;
+    font-size:14px; line-height:1;
+    padding:8px 10px;
+    box-shadow:0 10px 22px rgba(0,0,0,.6);
+    cursor:pointer;
+  }
+  [data-theme="light"] .theme-mini-btn{
+    background:#fff; color:#0f172a;
+    box-shadow:0 10px 22px rgba(0,0,0,.15);
+    border:1px solid rgba(0,0,0,.2);
+  }
+
+  .logout-btn{
+    border-radius:999px; border:1px solid rgba(0,0,0,.25);
+    background:#ffe4e6; color:#be123c;
+    font-weight:700; font-size:12px;
+    padding:6px 10px; text-decoration:none;
+    box-shadow:0 10px 22px rgba(0,0,0,.35);
+  }
+
+  /* PROGRESO */
+  .progress-card{
+    border-radius:16px;
+    background:radial-gradient(60% 120% at -10% -10%, var(--surface-glow), transparent 45%), var(--surface);
+    border:1px solid var(--surface-border);
+    box-shadow:0 22px 44px rgba(0,0,0,.55);
+    padding:18px 20px;
+    color:var(--card-text-soft);
+    animation:fadeIn .6s .08s both;
+  }
+  [data-theme="light"] .progress-card{
+    box-shadow:0 20px 40px rgba(0,0,0,.08);
+  }
+  .progress-title{
+    font-size:14px; font-weight:700;
+    margin:0 0 10px; color:var(--card-text-strong);
+  }
+  .progress-body{
+    font-size:13px; line-height:1.4;
+    color:var(--card-text-soft); margin:0 0 12px;
+  }
+  .progress-body .lvl{ font-weight:700; color:#f59e0b; }
+
+  .meter{
+    width:100%; height:8px;
+    border-radius:999px; overflow:hidden;
+    background:#1f2937;
+  }
+  [data-theme="light"] .meter{ background:#e5e7eb; }
+  .meter-fill{
+    height:100%; width:0%;
+    background:linear-gradient(90deg,#10b981 0%, #0ea5e9 100%);
+    box-shadow:0 0 12px rgba(16,185,129,.45);
+    border-radius:999px;
+  }
+  .meter-label{
+    margin-top:8px; font-size:12px;
+    display:flex; justify-content:space-between;
+    color:var(--card-text-soft);
+  }
+  .meter-label .strong{
+    color:var(--card-text-strong); font-weight:700;
+  }
+
+  /* TARJETAS */
+  .quick-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:18px;
+  }
+
+  @keyframes cardPop{
+    0%{opacity:0;transform:translateY(12px) scale(.96)}
+    60%{opacity:1;transform:translateY(-2px) scale(1.02)}
+    100%{opacity:1;transform:translateY(0) scale(1)}
+  }
+
+  .quick-card{
+    border-radius:16px; padding:16px 18px;
+    position:relative; text-decoration:none; cursor:pointer;
+    color:var(--quick-desc-color);
+    background:var(--surface-soft); border:1px solid transparent;
+    box-shadow:0 22px 40px rgba(0,0,0,.55),
+               inset 0 0 0 1px rgba(255,255,255,.02);
+    background-image:linear-gradient(135deg,
+      rgba(255,255,255,.03) 0%, rgba(0,0,0,0) 60%);
+    transition:transform .15s ease, box-shadow .15s ease,
+               border-color .15s ease, background .15s ease;
+    opacity:0; animation:cardPop .5s ease forwards;
+  }
+  .quick-card:nth-child(1){ animation-delay:.05s; }
+  .quick-card:nth-child(2){ animation-delay:.10s; }
+  .quick-card:nth-child(3){ animation-delay:.15s; }
+  .quick-card:nth-child(4){ animation-delay:.20s; }
+
+  [data-theme="light"] .quick-card{
+    box-shadow:0 20px 40px rgba(0,0,0,.08),
+               inset 0 0 0 1px rgba(0,0,0,.02);
+    background:var(--surface-soft);
+    background-image:linear-gradient(135deg,
+      rgba(0,0,0,.03) 0%, rgba(255,255,255,0) 60%);
+  }
+  .quick-card:hover{
+    transform:translateY(-3px) scale(1.01);
+    box-shadow:0 28px 56px rgba(0,0,0,.65),
+               0 0 22px rgba(16,185,129,.18);
+    border-color:rgba(255,255,255,.06);
+  }
+  [data-theme="light"] .quick-card:hover{
+    box-shadow:0 28px 56px rgba(0,0,0,.15),
+               0 0 22px rgba(16,185,129,.25);
+    border-color:rgba(0,0,0,.06);
+  }
+
+  .quick-head{
+    display:flex; align-items:flex-start;
+    gap:10px; margin-bottom:8px;
+  }
+  .quick-icon{
+    width:38px; height:38px; border-radius:10px;
+    display:grid; place-items:center;
+    font-weight:700; color:#0b0f14;
+    box-shadow:0 10px 22px rgba(0,0,0,.25),
+               inset 0 0 0 1px rgba(255,255,255,.08);
+  }
+  [data-theme="light"] .quick-icon{
+    color:#0f172a;
+    box-shadow:0 10px 22px rgba(0,0,0,.18),
+               inset 0 0 0 1px rgba(0,0,0,.08);
+  }
+  .quick-title{
+    margin:0; font-weight:700; font-size:14px;
+    color:var(--quick-title-color);
+  }
+  .quick-desc{
+    margin:2px 0 0; font-size:12px;
+    color:var(--quick-desc-color);
+  }
+
+  .badge-corner{
+    position:absolute; top:8px; right:10px;
+    font-size:11px; font-weight:700;
+    background:rgba(2,6,23,.7); color:#e5e7eb;
+    padding:3px 7px; border-radius:999px;
+    border:1px solid rgba(255,255,255,.08);
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:22px; height:22px;
+  }
+  [data-theme="light"] .badge-corner{
+    background:rgba(15,23,42,.08);
+    color:#0f172a; border:1px solid rgba(0,0,0,.15);
+  }
+
+  /* Colores de tarjetas IGUALES al panel de instructor */
+  .quick-card.cyan{
+    background:radial-gradient(circle at 0% 0%, var(--t-cyan) 0%, transparent 70%), var(--surface-soft);
+    border-color:var(--b-cyan);
+  }
+  .quick-card.green{
+    background:radial-gradient(circle at 0% 0%, var(--t-green) 0%, transparent 70%), var(--surface-soft);
+    border-color:var(--b-green);
+  }
+  .quick-card.indigo{
+    background:radial-gradient(circle at 0% 0%, var(--t-indigo) 0%, transparent 70%), var(--surface-soft);
+    border-color:var(--b-indigo);
+  }
+  .quick-card.purple{
+    background:radial-gradient(circle at 0% 0%, var(--t-purple) 0%, transparent 70%), var(--surface-soft);
+    border-color:var(--b-purple);
+  }
+  .quick-card.slate{
+    background:radial-gradient(circle at 0% 0%, var(--t-slate) 0%, transparent 70%), var(--surface-soft);
+    border-color:var(--b-slate);
+  }
+
+  @keyframes slideUp{
+    from{opacity:0;transform:translateY(12px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  @keyframes fadeIn{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+
+  @media(max-width:600px){
+    .hero-card{ flex-direction:column; align-items:flex-start; }
+    .hero-right{ align-self:flex-end; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="screen">
+  <!-- HERO PERFIL -->
+  <section class="hero-card">
+    <div class="hero-left">
+      <div class="pfp-wrapper">
+        {% if request.user.profile and request.user.profile.photo %}
+          <img src="{{ request.user.profile.photo.url }}" alt="Foto de perfil">
+        {% else %}
+          <div class="pfp-fallback">
+            {{ request.user.first_name|default:request.user.username|first|upper }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="hero-info">
+        <h2>Hola, {{ request.user.first_name|default:"Aprendiz" }} {{ request.user.last_name }} 👋</h2>
+        <p class="hero-meta">Rol: Aprendiz</p>
+        <p class="hero-meta">Correo: {{ request.user.email }}</p>
+
+        <a href="{% url 'core:profile_edit' %}" class="edit-btn">✏ Editar Perfil</a>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <button class="theme-mini-btn" id="themeToggle" title="Cambiar tema">🌗</button>
+      <a href="{% url 'core:logout' %}" class="logout-btn">⏻ Salir</a>
+    </div>
+  </section>
+
+  <!-- PROGRESO / ASISTENCIA -->
+  <section class="progress-card">
+    <h3 class="progress-title">Tu Progreso de Asistencia</h3>
+    <p class="progress-body">
+      Has asistido al <strong><span class="pct-num">72</span>%</strong> de tus clases.
+      <br> Nivel: <span class="lvl">Bajo</span>
+    </p>
+    <div class="meter" data-pct="72">
+      <div class="meter-fill"></div>
+    </div>
+    <div class="meter-label">
+      <span>Asistencia</span>
+      <span class="strong"><span class="pct-num">72</span>%</span>
+    </div>
+  </section>
+
+  <!-- ACCESOS RÁPIDOS CON LOS MISMOS COLORES QUE EL INSTRUCTOR -->
+  <section class="quick-grid">
+    <!-- Registrar asistencia: tipo cyan como "Generar QR" del instructor -->
+    <a class="quick-card cyan" href="{% url 'core:registrar_asistencia' %}">
+      <span class="badge-corner">QR</span>
+      <div class="quick-head">
+        <div class="quick-icon">✅</div>
+        <div>
+          <p class="quick-title">Registrar Asistencia</p>
+          <p class="quick-desc">Marca tu ingreso fácilmente.</p>
+        </div>
+      </div>
+    </a>
+
+    <!-- Notificaciones: morado como "Alertas" del instructor -->
+    <a class="quick-card purple" id="cardNotif" href="{% url 'core:notificaciones' %}" style="position:relative;">
+      <span id="notifBadge" class="badge-corner" style="display:none;"></span>
+      <div class="quick-head">
+        <div class="quick-icon">🔔</div>
+        <div>
+          <p class="quick-title">Notificaciones</p>
+          <p class="quick-desc">Mira tus avisos y alertas.</p>
+        </div>
+      </div>
+    </a>
+
+    <!-- Historial: gris azulado tipo "Historial" del instructor -->
+    <a class="quick-card slate" href="{% url 'core:historial_asistencia' %}">
+      <div class="quick-head">
+        <div class="quick-icon">📜</div>
+        <div>
+          <p class="quick-title">Historial</p>
+          <p class="quick-desc">Consulta tus registros.</p>
+        </div>
+      </div>
+    </a>
+
+    <!-- Justificativos: verde / éxito -->
+    <a class="quick-card green" href="{% url 'core:justificaciones_aprendiz' %}">
+      <div class="quick-head">
+        <div class="quick-icon">📄</div>
+        <div>
+          <p class="quick-title">Justificativos</p>
+          <p class="quick-desc">Envía tus soportes.</p>
+        </div>
+      </div>
+    </a>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  // Partículas dependientes de tema
+  function particlesConfig(){
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      particles:{
+        number:{value:60},
+        color:{value: isLight ? ["#475569","#64748b","#334155"] : ["#60a5fa","#22d3ee","#1e293b"]},
+        shape:{type:"circle"},
+        opacity:{value: isLight ? 0.22 : 0.18},
+        size:{value: isLight ? 2.2 : 3},
+        line_linked:{
+          enable:true,
+          distance:150,
+          color:isLight ? "#64748b" : "#60a5fa",
+          opacity:isLight ? 0.22 : 0.18,
+          width:1
+        },
+        move:{enable:true,speed:1.8}
+      },
+      interactivity:{
+        detect_on:"canvas",
+        events:{onhover:{enable:true,mode:"repulse"}},
+        modes:{repulse:{distance:100}}
+      },
+      retina_detect:true
+    };
+  }
+
+  function applyParticles(){
+    try{
+      if(window.pJSDom && window.pJSDom[0]){
+        window.pJSDom[0].pJS.fn.vendors.destroypJS();
+        window.pJSDom.length = 0;
+      }
+    }catch(_){}
+    particlesJS("particles-js", particlesConfig());
+  }
+
+  applyParticles();
+  document.getElementById('themeToggle')?.addEventListener('click', ()=> {
+    setTimeout(applyParticles, 0);
+  });
+  window.addEventListener('themechange', applyParticles);
+
+  // Barra de progreso animada
+  document.querySelectorAll('.meter').forEach(m=>{
+    const pct  = parseInt(m.dataset.pct || "0", 10);
+    const fill = m.querySelector('.meter-fill');
+    const wrap = m.closest('section');
+    const nums = wrap ? wrap.querySelectorAll('.pct-num') : [];
+    let curr = 0;
+    function step(){
+      curr += 1;
+      if(curr > pct) curr = pct;
+      fill.style.width = curr + '%';
+      nums.forEach(n=> n.textContent = curr);
+      if(curr < pct) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+
+  // Badge notificaciones
+  const badge = document.getElementById('notifBadge');
+  async function refreshNotifBadge(){
+    if(!badge) return;
+    try{
+      const url = "{% url 'core:api_notif_unread_count' %}";
+      const r   = await fetch(url, { headers:{'X-Requested-With':'fetch'} });
+      const data = await r.json();
+      const n = (data && typeof data.count === 'number') ? data.count : 0;
+      if(n > 0){
+        badge.textContent = n > 99 ? '99+' : n;
+        badge.style.display = 'inline-flex';
+      }else{
+        badge.style.display = 'none';
+      }
+    }catch(_){
+      badge.style.display = 'none';
+    }
+  }
+  refreshNotifBadge();
+  setInterval(refreshNotifBadge, 10000);
+</script>
+{% endblock %}

@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Aprobar justificaciones{% endblock %}
+
+{% block head_extra %}
+<style>
+  :root{
+    --bg-a:#0b0f14; --bg-b:#0e1726; --text:#e5e7eb; --muted:#9aa6b2;
+    --panel:rgba(15,23,42,.62); --panel-b:rgba(148,163,184,.22);
+    --chip:rgba(255,255,255,.06);
+    --grad-a:#0ea5e9; --grad-b:#6366f1; --grad-c:#22d3ee;
+    --shadow:0 28px 60px rgba(0,0,0,.55), 0 0 50px rgba(56,189,248,.18);
+  }
+  [data-theme="light"]{
+    --bg-a:#eef6ff; --bg-b:#ffffff; --text:#0f172a; --muted:#475569;
+    --panel:rgba(255,255,255,.9); --panel-b:rgba(15,23,42,.12);
+    --chip:rgba(0,0,0,.05);
+    --shadow:0 28px 60px rgba(0,0,0,.12), 0 0 30px rgba(99,102,241,.18);
+  }
+
+  html,body{ background:linear-gradient(160deg,var(--bg-a) 0%, var(--bg-b) 60%); color:var(--text); }
+  #particles-js{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+  .screen{
+    position:relative; z-index:1;
+    width:min(1200px,96vw); margin:0 auto;
+    padding:24px 12px 32px;
+    display:grid; gap:16px;
+  }
+
+  .hero{
+    border-radius:20px; padding:18px;
+    background:linear-gradient(100deg,var(--grad-a),var(--grad-b),var(--grad-c));
+    border:1px solid rgba(255,255,255,.18); box-shadow:var(--shadow);
+    display:grid; grid-template-columns:1fr auto; align-items:center; gap:12px;
+  }
+  .hero h1{ margin:0; font-size:20px; font-weight:900; color:#0b1120; }
+  .hero p{ margin:2px 0 0; font-size:12px; color:#0b1120; font-weight:700; opacity:.9; }
+  .panel-btn{
+    display:inline-flex; align-items:center; gap:8px; height:40px; padding:0 14px;
+    border-radius:14px; background:#f8fafc; color:#0f172a; font-weight:900; text-decoration:none;
+    border:1px solid rgba(0,0,0,.12); box-shadow:0 10px 24px rgba(0,0,0,.18);
+  }
+
+  .grid{
+    display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:16px;
+  }
+  @media(max-width:900px){
+    .grid{ grid-template-columns:1fr; }
+  }
+
+  .card{
+    border-radius:18px; background:var(--panel); border:1px solid var(--panel-b);
+    box-shadow:var(--shadow); padding:14px;
+    backdrop-filter:blur(12px) saturate(140%);
+    -webkit-backdrop-filter:blur(12px) saturate(140%);
+  }
+  .title{ margin:0 0 6px; font-weight:800; font-size:16px; }
+  .sub{ margin:0 0 10px; font-size:13px; color:var(--muted); }
+
+  .filters{
+    display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:10px;
+  }
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:7px 11px; border-radius:999px;
+    background:var(--chip); border:1px solid var(--panel-b);
+    font-size:11px; font-weight:800;
+  }
+
+  .btn-tab{
+    border-radius:999px; border:1px solid var(--panel-b);
+    padding:7px 11px; font-size:11px; font-weight:800;
+    background:rgba(15,23,42,.55); color:var(--muted);
+    cursor:pointer;
+  }
+  [data-theme="light"] .btn-tab{ background:rgba(255,255,255,.9); }
+  .btn-tab.active{
+    background:linear-gradient(90deg,var(--grad-a),var(--grad-b));
+    color:#0b1120; border-color:transparent;
+    box-shadow:0 10px 22px rgba(0,0,0,.35);
+  }
+
+  .search-wrap{
+    margin-left:auto; display:flex; align-items:center; gap:6px;
+    padding:0 8px; border-radius:999px; background:rgba(15,23,42,.45);
+    border:1px solid var(--panel-b); height:32px;
+  }
+  [data-theme="light"] .search-wrap{ background:rgba(255,255,255,.9); }
+  .search-wrap input{
+    border:none; outline:none; background:transparent; color:var(--text);
+    font-size:12px; width:140px;
+  }
+
+  .list{
+    margin-top:8px; max-height:430px; overflow:auto;
+    display:grid; gap:8px;
+    scrollbar-width:thin; scrollbar-color:rgba(129,140,248,.7) transparent;
+  }
+  .list::-webkit-scrollbar{ width:6px; }
+  .list::-webkit-scrollbar-thumb{
+    background:linear-gradient(var(--grad-a),var(--grad-b)); border-radius:999px;
+  }
+
+  .item{
+    display:grid; grid-template-columns:auto 1fr; gap:10px; align-items:flex-start;
+    padding:10px; border-radius:14px;
+    border:1px solid var(--panel-b);
+    background:rgba(2,6,23,.55);
+    cursor:pointer; transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease, background .12s ease;
+  }
+  [data-theme="light"] .item{ background:rgba(255,255,255,.9); }
+  .item:hover{
+    transform:translateY(-2px);
+    box-shadow:0 16px 34px rgba(0,0,0,.45);
+    border-color:rgba(129,140,248,.7);
+  }
+  .item.active{
+    box-shadow:0 18px 40px rgba(37,99,235,.6);
+    border-color:rgba(59,130,246,.9);
+    background:linear-gradient(120deg,rgba(37,99,235,.25),rgba(15,23,42,.85));
+  }
+
+  .avatar{
+    width:38px; height:38px; border-radius:14px;
+    display:grid; place-items:center;
+    font-size:14px; font-weight:900;
+    background:linear-gradient(135deg,#38bdf8,#6366f1);
+    color:#0b1120; box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);
+  }
+  .body h4{ margin:0 0 2px; font-size:13px; font-weight:800; }
+  .body p{ margin:0; font-size:12px; color:var(--muted); }
+  .meta{ margin-top:4px; font-size:11px; color:var(--muted); }
+
+  .badge{
+    padding:3px 8px; border-radius:999px;
+    font-size:11px; font-weight:800;
+    border:1px solid var(--panel-b);
+  }
+  .Pendiente{ background:#fde68a22; color:#f59e0b; border-color:#f59e0b66; }
+  .Aprobado{ background:#bbf7d022; color:#22c55e; border-color:#22c55e66; }
+  .Rechazado{ background:#fecaca22; color:#ef4444; border-color:#ef444466; }
+
+  .ghost{
+    text-align:center; font-size:13px; color:var(--muted);
+    padding:24px 8px; border:1px dashed var(--panel-b); border-radius:14px;
+  }
+
+  .detail-header{
+    display:flex; align-items:flex-start; gap:10px; margin-bottom:8px;
+  }
+  .detail-header-main{ flex:1; }
+  .detail-title{ margin:0 0 3px; font-size:15px; font-weight:800; }
+  .detail-sub{ margin:0; font-size:12px; color:var(--muted); }
+
+  .detail-text{ font-size:13px; color:var(--muted); margin:6px 0; }
+  .detail-label{ font-weight:700; color:var(--text); }
+
+  .ui{
+    width:100%; border-radius:12px; border:1px solid var(--panel-b);
+    background:rgba(2,6,23,.55); color:var(--text);
+    padding:8px 10px; font-size:13px; outline:none;
+  }
+  [data-theme="light"] .ui{ background:rgba(255,255,255,.9); }
+  textarea.ui{ min-height:90px; resize:vertical; }
+
+  .form-actions{
+    margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  }
+  .btn{
+    height:40px; border-radius:12px;
+    border:1px solid rgba(0,0,0,.35);
+    padding:0 14px; font-size:13px; font-weight:800;
+    cursor:pointer; box-shadow:0 16px 34px rgba(0,0,0,.35);
+  }
+  .btn.ok{ background:linear-gradient(90deg,#22c55e,#4ade80); color:#052e16; }
+  .btn.danger{ background:linear-gradient(90deg,#ef4444,#f97316); color:#450a0a; }
+  .btn.ghost{ background:transparent; color:var(--muted); border-color:var(--panel-b); box-shadow:none; }
+  .btn[disabled]{ opacity:.6; cursor:not-allowed; }
+
+  #msg-detail{
+    display:none; align-items:center; gap:6px; padding:6px 10px;
+    border-radius:999px; font-size:12px; font-weight:800;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="screen">
+  <section class="hero">
+    <div>
+      <h1>Aprobar justificaciones</h1>
+      <p>Revisa los soportes de tus aprendices y marca Aprobado / Rechazado.</p>
+    </div>
+    <div>
+      <a href="{% url 'core:dash_instructor' %}" class="panel-btn">← Panel</a>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <h3 class="title">Solicitudes</h3>
+      <p class="sub">Filtra por estado. Autorefresco cada 10s.</p>
+
+      <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+      <div class="filters">
+        <span class="chip">📄 <strong id="countTotal">0</strong> encontradas</span>
+        <button class="btn-tab active" data-estado="pendiente">Pendientes</button>
+        <button class="btn-tab" data-estado="aprobado">Aprobadas</button>
+        <button class="btn-tab" data-estado="rechazado">Rechazadas</button>
+        <button class="btn-tab" data-estado="todas">Todas</button>
+
+        <div class="search-wrap">
+          🔎
+          <input id="buscar" type="text" placeholder="Buscar aprendiz / motivo">
+        </div>
+      </div>
+
+      <div class="list" id="list">
+        <div class="ghost">Cargando…</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="title">Detalle</h3>
+      <p class="sub">Selecciona una justificación para ver sus datos completos.</p>
+
+      <div id="detail-empty" class="ghost">
+        Nada seleccionado. A la izquierda tienes la lista, es gratis hacer click.
+      </div>
+
+      <div id="detail-box" style="display:none;">
+        <div class="detail-header">
+          <div class="avatar" id="d-avatar">A</div>
+          <div class="detail-header-main">
+            <p class="detail-title" id="d-nombre">Nombre aprendiz</p>
+            <p class="detail-sub" id="d-correo"></p>
+          </div>
+          <span class="badge Pendiente" id="d-estado">Pendiente</span>
+        </div>
+
+        <p class="detail-text"><span class="detail-label">Motivo:</span> <span id="d-motivo"></span></p>
+        <p class="detail-text"><span class="detail-label">Observación registrada:</span> <span id="d-observacion"></span></p>
+        <p class="detail-text" id="d-fechas"></p>
+        <p class="detail-text" id="d-adjunto"></p>
+        <p class="detail-text" id="d-respuesta-prev" style="display:none;"></p>
+
+        <label for="comentario" class="detail-text detail-label" style="display:block;margin-top:10px;">Comentario para el aprendiz</label>
+        <textarea id="comentario" class="ui" placeholder="Ej: Se justifica la inasistencia por el soporte adjunto."></textarea>
+
+        <div class="form-actions">
+          <button class="btn ok" id="btnAprobar">Aprobar</button>
+          <button class="btn danger" id="btnRechazar">Rechazar</button>
+          <button class="btn ghost" id="btnLimpiar">Limpiar selección</button>
+          <span id="msg-detail" class="chip"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  function particlesConfig(){
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      particles:{ number:{value:60},
+        color:{value:isLight?["#64748b","#94a3b8","#0f172a"]:["#0ea5e9","#6366f1","#22d3ee"]},
+        shape:{type:"circle"}, opacity:{value:isLight?0.22:0.18}, size:{value:isLight?2.2:3},
+        line_linked:{enable:true,distance:150,color:isLight?"#64748b":"#22d3ee",opacity:isLight?0.22:0.16,width:1},
+        move:{enable:true,speed:1.6}
+      },
+      interactivity:{detect_on:"canvas",events:{onhover:{enable:true,mode:"repulse"}},modes:{repulse:{distance:110}}},
+      retina_detect:true
+    };
+  }
+  function applyParticles(){
+    try{ if(window.pJSDom && pJSDom[0]){ pJSDom[0].pJS.fn.vendors.destroypJS(); pJSDom.length=0; } }catch(_){}
+    particlesJS("particles-js", particlesConfig());
+  }
+  applyParticles();
+  window.addEventListener('themechange', applyParticles);
+
+  const $ = s => document.querySelector(s);
+  const listEl = $('#list');
+  const countTotalEl = $('#countTotal');
+  const detailEmpty = $('#detail-empty');
+  const detailBox = $('#detail-box');
+  const msgDetail = $('#msg-detail');
+
+  const dAvatar = $('#d-avatar');
+  const dNombre = $('#d-nombre');
+  const dCorreo = $('#d-correo');
+  const dEstado = $('#d-estado');
+  const dMotivo = $('#d-motivo');
+  const dObs = $('#d-observacion');
+  const dFechas = $('#d-fechas');
+  const dAdj = $('#d-adjunto');
+  const dRespPrev = $('#d-respuesta-prev');
+  const txtComentario = $('#comentario');
+
+  const btnAprobar = $('#btnAprobar');
+  const btnRechazar = $('#btnRechazar');
+  const btnLimpiar = $('#btnLimpiar');
+  const buscar = $('#buscar');
+
+  const CSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const URL_LIST = "{% url 'core:instructor_justif_list_api' %}";
+  const URL_ACCION = "{% url 'core:instructor_justif_set_state_api' %}";
+
+  let estadoFiltro = 'pendiente';
+  let currentRows = [];
+  let currentId = null;
+  let loading = false;
+  let searchTerm = '';
+
+  function flashDetail(text, ok=true){
+    msgDetail.style.display = 'inline-flex';
+    msgDetail.textContent = text;
+    msgDetail.style.border = '1px solid ' + (ok ? 'rgba(34,197,94,.55)' : 'rgba(239,68,68,.55)');
+    msgDetail.style.background = ok ? 'rgba(22,163,74,.18)' : 'rgba(239,68,68,.18)';
+    msgDetail.style.color = ok ? '#bbf7d0' : '#fecaca';
+    setTimeout(()=>{ msgDetail.style.display='none'; }, 2800);
+  }
+
+  function initials(name){
+    const parts = (name || '?').trim().split(/\s+/).filter(Boolean);
+    if(!parts.length) return '?';
+    if(parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+  }
+
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m]));
+  }
+  function mediaUrl(rel){
+    if(!rel) return '#';
+    return window.location.origin + '/media/' + rel.replace(/^\/+/, '');
+  }
+
+  function relTime(iso){
+    if(!iso) return '';
+    const t = new Date(iso);
+    if(isNaN(t)) return '';
+    const s = Math.floor((Date.now() - t.getTime())/1000);
+    if(s < 60) return `hace ${s}s`;
+    const m = Math.floor(s/60);
+    if(m < 60) return `hace ${m}m`;
+    const h = Math.floor(m/60);
+    if(h < 24) return `hace ${h}h`;
+    const d = Math.floor(h/24);
+    return `hace ${d}d`;
+  }
+
+  async function cargarLista(){
+    if(loading) return;
+    loading = true;
+    listEl.innerHTML = `<div class="ghost">Cargando…</div>`;
+    try{
+      const q = new URLSearchParams({
+        estado: estadoFiltro,
+        q: searchTerm || ''
+      });
+      const r = await fetch(`${URL_LIST}?${q.toString()}`);
+      const data = await r.json();
+      if(data.ok === false){
+        throw new Error(data.msg || 'Error al cargar');
+      }
+      currentRows = data.rows || [];
+      countTotalEl.textContent = currentRows.length || 0;
+      renderLista();
+    }catch(e){
+      listEl.innerHTML = `<div class="ghost">Error cargando justificaciones.</div>`;
+      detailEmpty.style.display = 'block';
+      detailBox.style.display = 'none';
+      currentId = null;
+    }finally{
+      loading = false;
+    }
+  }
+
+  function renderLista(){
+    if(!currentRows.length){
+      listEl.innerHTML = `<div class="ghost">No hay justificaciones para este filtro.</div>`;
+      detailEmpty.style.display = 'block';
+      detailBox.style.display = 'none';
+      currentId = null;
+      return;
+    }
+    const html = currentRows.map(r=>{
+      const active = r.id === currentId ? ' active' : '';
+      const badgeCls = r.estado || 'Pendiente';
+      const motivoShort = (r.motivo || '').length > 70 ? (r.motivo.slice(0,67) + '…') : (r.motivo || '');
+      return `
+        <div class="item${active}" data-id="${r.id}">
+          <div class="avatar">${escapeHtml(initials(r.nombre))}</div>
+          <div class="body">
+            <h4>${escapeHtml(r.nombre)}</h4>
+            <p>${escapeHtml(motivoShort)}</p>
+            <p class="meta">
+              <span class="badge ${badgeCls}">${escapeHtml(r.estado)}</span>
+              &nbsp;•&nbsp; Inasistencia: ${escapeHtml(r.fecha_inasistencia || '')}
+              &nbsp;•&nbsp; ${relTime(r.fecha_envio)}
+            </p>
+          </div>
+        </div>
+      `;
+    }).join('');
+    listEl.innerHTML = html;
+
+    if(!currentId && currentRows.length){
+      seleccionar(currentRows[0].id);
+    }
+  }
+
+  function seleccionar(id){
+    id = Number(id);
+    const row = currentRows.find(r => Number(r.id) === id);
+    if(!row){
+      detailEmpty.style.display = 'block';
+      detailBox.style.display = 'none';
+      currentId = null;
+      return;
+    }
+    currentId = id;
+    listEl.querySelectorAll('.item').forEach(el=>{
+      el.classList.toggle('active', Number(el.dataset.id) === id);
+    });
+
+    detailEmpty.style.display = 'none';
+    detailBox.style.display = 'block';
+
+    dAvatar.textContent = initials(row.nombre);
+    dNombre.textContent = row.nombre || 'Aprendiz';
+    dCorreo.textContent = '';  // no tenemos correo directo aquí
+    dMotivo.textContent = row.motivo || '';
+    dObs.textContent = row.observacion || 'Sin observación registrada.';
+    dFechas.textContent = `Inasistencia: ${row.fecha_inasistencia || ''} • Envío: ${row.fecha_envio || ''}`;
+
+    if(row.adjunto){
+      dAdj.innerHTML = `<span class="detail-label">Adjunto:</span> <a href="${mediaUrl(row.adjunto)}" target="_blank" rel="noreferrer">Ver archivo</a>`;
+    }else{
+      dAdj.innerHTML = `<span class="detail-label">Adjunto:</span> Sin archivo adjunto.`;
+    }
+
+    dRespPrev.style.display = 'none';
+
+    dEstado.textContent = row.estado || 'Pendiente';
+    dEstado.className = 'badge ' + (row.estado || 'Pendiente');
+
+    const pendiente = (row.estado === 'Pendiente');
+    btnAprobar.disabled = !pendiente;
+    btnRechazar.disabled = !pendiente;
+    txtComentario.readOnly = !pendiente;
+    txtComentario.value = '';
+    txtComentario.placeholder = pendiente
+      ? 'Escribe un comentario para el aprendiz (opcional pero recomendable)…'
+      : 'Esta justificación ya fue resuelta.';
+  }
+
+  async function enviarAccion(tipo){
+    if(!currentId){
+      flashDetail('Selecciona una justificación primero.', false);
+      return;
+    }
+    const comentario = txtComentario.value.trim();
+    try{
+      btnAprobar.disabled = true;
+      btnRechazar.disabled = true;
+      const r = await fetch(URL_ACCION, {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'X-CSRFToken': CSRF
+        },
+        body: JSON.stringify({ id: currentId, accion: tipo, observacion: comentario })
+      });
+      const data = await r.json();
+      if(data.ok === false){
+        throw new Error(data.msg || 'No se pudo guardar.');
+      }
+      flashDetail(tipo === 'aprobar' ? 'Justificación aprobada.' : 'Justificación rechazada.', true);
+      currentId = null;
+      await cargarLista();
+    }catch(e){
+      flashDetail(e.message || 'Error al procesar la acción.', false);
+      btnAprobar.disabled = false;
+      btnRechazar.disabled = false;
+    }
+  }
+
+  listEl.addEventListener('click', e=>{
+    const item = e.target.closest('.item');
+    if(!item) return;
+    seleccionar(item.dataset.id);
+  });
+
+  btnAprobar.addEventListener('click', ()=> enviarAccion('aprobar'));
+  btnRechazar.addEventListener('click', ()=> enviarAccion('rechazar'));
+  btnLimpiar.addEventListener('click', ()=>{
+    currentId = null;
+    detailEmpty.style.display = 'block';
+    detailBox.style.display = 'none';
+    listEl.querySelectorAll('.item').forEach(el=> el.classList.remove('active'));
+  });
+
+  document.querySelectorAll('.btn-tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.btn-tab').forEach(b=> b.classList.remove('active'));
+      btn.classList.add('active');
+      estadoFiltro = btn.dataset.estado || 'pendiente';
+      currentId = null;
+      cargarLista();
+    });
+  });
+
+  let searchTimer = null;
+  buscar.addEventListener('input', ()=>{
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(()=>{
+      searchTerm = buscar.value.trim();
+      currentId = null;
+      cargarLista();
+    }, 350);
+  });
+
+  setInterval(()=>{ cargarLista(); }, 10000);
+  cargarLista();
+</script>
+{% endblock %}

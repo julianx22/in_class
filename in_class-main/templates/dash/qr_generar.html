@@ -1,0 +1,526 @@
+{% extends "base.html" %} 
+{% load static %}
+{% block title %}Generar código QR{% endblock %}
+
+{% block head_extra %}
+<style>
+  :root{
+    --bg-grad-start:#0b0f14;
+    --bg-grad-end:#1a2a2f;
+
+    --text-main:#e5e7eb;
+    --text-dim:#9aa6b2;
+
+    --panel-bg:rgba(15,23,42,.6);
+    --panel-border:rgba(148,163,184,.22);
+    --panel-inner-line:rgba(255,255,255,.05);
+    --panel-shadow:0 30px 60px rgba(0,0,0,.8), 0 0 120px rgba(16,185,129,.15);
+
+    --accent-a:#10b981;
+    --accent-b:#22d3ee;
+    --accent-c:#6366f1;
+
+    --chip-bg:rgba(15,23,42,.8);
+    --chip-border:rgba(255,255,255,.12);
+
+    --field-bg:#0f172a;
+    --field-border:rgba(148,163,184,.28);
+    --field-focus-shadow:rgba(34,211,238,.4);
+
+    --qr-bg:#0b1220;
+    --qr-border:rgba(148,163,184,.45);
+
+    --table-row-bg:rgba(15,23,42,.75);
+    --table-row-border:rgba(148,163,184,.22);
+
+    --meter-bg:rgba(148,163,184,.18);
+
+    --soft-glow:radial-gradient(circle at -20% -10%, rgba(16,185,129,.22) 0%, rgba(0,0,0,0) 60%),
+                radial-gradient(circle at 120% 20%, rgba(99,102,241,.18) 0%, rgba(0,0,0,0) 60%);
+  }
+
+  [data-theme="light"]{
+    --bg-grad-start:#eef2ff;
+    --bg-grad-end:#ffffff;
+
+    --text-main:#0f172a;
+    --text-dim:#475569;
+
+    --panel-bg:rgba(255,255,255,.65);
+    --panel-border:rgba(15,23,42,.12);
+    --panel-inner-line:rgba(0,0,0,.05);
+    --panel-shadow:0 30px 60px rgba(0,0,0,.15), 0 0 120px rgba(16,185,129,.2);
+
+    --chip-bg:rgba(255,255,255,.7);
+    --chip-border:rgba(0,0,0,.15);
+
+    --field-bg:#fff;
+    --field-border:rgba(15,23,42,.18);
+    --field-focus-shadow:rgba(16,185,129,.4);
+
+    --qr-bg:#fff;
+    --qr-border:rgba(15,23,42,.35);
+
+    --table-row-bg:rgba(255,255,255,.75);
+    --table-row-border:rgba(15,23,42,.15);
+
+    --meter-bg:rgba(15,23,42,.16);
+
+    --soft-glow:radial-gradient(circle at -20% -10%, rgba(16,185,129,.25) 0%, rgba(0,0,0,0) 60%),
+                radial-gradient(circle at 120% 20%, rgba(99,102,241,.25) 0%, rgba(0,0,0,0) 60%);
+  }
+
+  html, body{
+    background:
+      radial-gradient(circle at 10% -10%, rgba(16,185,129,.08) 0%, transparent 60%),
+      radial-gradient(circle at 90% 20%, rgba(34,211,238,.07) 0%, transparent 60%),
+      linear-gradient(160deg, var(--bg-grad-start) 0%, var(--bg-grad-end) 60%);
+    color:var(--text-main);
+  }
+
+  #particles-js{ position:fixed; inset:0; z-index:0; pointer-events:none; }
+
+  .screen{
+    position:relative; z-index:1; height:100%; width:100%; padding:24px 12px 32px;
+    display:flex; justify-content:center; align-items:flex-start; overflow-y:auto;
+    scrollbar-width:thin; scrollbar-color:var(--accent-c) transparent;
+  }
+  .screen::-webkit-scrollbar{ width:6px }
+  .screen::-webkit-scrollbar-thumb{ background:linear-gradient(var(--accent-b),var(--accent-c)); border-radius:999px; }
+
+  .wrap{ width:min(1100px,96vw); display:grid; gap:20px; position:relative; }
+
+  .hero-card{
+    border-radius:20px; padding:20px 20px 18px;
+    background:linear-gradient(100deg, var(--accent-a) 0%, var(--accent-b) 45%, var(--accent-c) 100%);
+    box-shadow:0 30px 60px rgba(0,0,0,.8), 0 0 80px rgba(34,211,238,.4);
+    border:1px solid rgba(255,255,255,.18);
+    display:flex; flex-wrap:wrap; gap:16px; justify-content:space-between; align-items:flex-start;
+    animation:heroPop .45s ease both;
+  }
+  .hero-left h1{ margin:0 0 4px; font-size:18px; font-weight:800; color:#fff; letter-spacing:.2px; }
+  .hero-left .sub{ margin:0; font-size:13px; color:#e2e8f0; }
+  .hero-right{ display:flex; align-items:flex-start; gap:10px; }
+  .theme-mini-btn{
+    border-radius:999px; border:1px solid rgba(0,0,0,.25); background:var(--chip-bg); border-color:var(--chip-border);
+    color:var(--text-main); font-size:14px; height:40px; min-width:40px; padding:0 10px; font-weight:600;
+    box-shadow:0 16px 32px rgba(0,0,0,.6); cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .back-btn{
+    border-radius:999px; border:1px solid rgba(0,0,0,.3); background:rgba(255,255,255,.9); color:#0f172a; font-weight:700;
+    font-size:13px; line-height:1; padding:9px 14px; text-decoration:none; box-shadow:0 16px 32px rgba(0,0,0,.45);
+    display:flex; align-items:center; gap:6px; transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .back-btn:hover{ transform:translateY(-1px); box-shadow:0 20px 40px rgba(0,0,0,.6); }
+
+  .main-grid{ display:grid; gap:20px; grid-template-columns: 1fr 1fr; }
+  @media(max-width:900px){ .main-grid{ grid-template-columns:1fr; } }
+
+  .panel{
+    position:relative; border-radius:18px; background:var(--panel-bg); border:1px solid var(--panel-border);
+    box-shadow:var(--panel-shadow); padding:20px 20px 16px; backdrop-filter:blur(14px) saturate(140%);
+    -webkit-backdrop-filter:blur(14px) saturate(140%); animation:panelFloat .5s ease both;
+  }
+  .panel::before{ content:""; position:absolute; inset:0; background:var(--soft-glow); border-radius:inherit; z-index:0; pointer-events:none; }
+  .panel-inner{ position:relative; z-index:1; }
+  .panel-title{ font-size:14px; font-weight:700; color:var(--text-main); margin:0 0 10px; display:flex; align-items:center; gap:8px; }
+  .panel-sub{ margin:0 0 16px; font-size:13px; line-height:1.4; color:var(--text-dim); }
+
+  .qr-area{
+    position:relative; border-radius:14px; border:1px dashed var(--qr-border); background:var(--qr-bg);
+    min-height:220px; display:grid; place-items:center; padding:16px;
+    box-shadow: inset 0 0 12px rgba(0,0,0,.6), 0 30px 60px rgba(0,0,0,.5);
+  }
+
+  .expired-overlay{ position:absolute; inset:0; display:grid; place-items:center; background:linear-gradient(180deg, rgba(2,6,23,.7), rgba(2,6,23,.85)); border-radius:inherit; }
+  .expired-box{ text-align:center; background:rgba(15,23,42,.75); border:1px solid var(--panel-border); border-radius:12px; padding:12px 14px; box-shadow:0 16px 32px rgba(0,0,0,.6); }
+  .expired-title{ margin:0; font-weight:800; color:#fda4af; }
+  .expired-sub{ margin:6px 0 0; font-size:12.5px; color:var(--text-dim); }
+
+  .token-display{ margin-top:16px; text-align:center; }
+  .token-code{
+    font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:22px; font-weight:800; line-height:1.2; color:#a5f3fc; letter-spacing:2px; word-break:break-all;
+    text-shadow:0 0 8px rgba(34,211,238,.8), 0 0 32px rgba(16,185,129,.4); min-height:26px;
+  }
+  .token-meta{ font-size:12.5px; font-weight:500; line-height:1.4; color:var(--text-dim); margin-top:6px; min-height:18px; }
+
+  .time-wrap{ margin-top:14px; display:none; gap:8px; }
+  .time-chip{ display:inline-flex; align-items:center; gap:8px; background:var(--chip-bg); border:1px solid var(--chip-border); padding:6px 10px; border-radius:999px; font-weight:700; font-size:12px; color:var(--text-main); width:max-content; box-shadow:0 16px 32px rgba(0,0,0,.6); }
+  .time-meter{ width:100%; height:8px; background:var(--meter-bg); border-radius:999px; overflow:hidden; box-shadow:inset 0 0 0 1px var(--panel-inner-line); }
+  .time-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--accent-a), var(--accent-b), var(--accent-c)); box-shadow:0 0 12px rgba(34,211,238,.4); border-radius:999px; }
+
+  .form-grid{ margin-top:20px; display:grid; gap:14px; grid-template-columns:1fr 1fr; }
+  @media(max-width:600px){ .form-grid{ grid-template-columns:1fr; } }
+  .field-block{ display:flex; flex-direction:column; }
+  .full-col{ grid-column:1 / -1; }
+  .field-label{ font-size:13px; color:var(--text-dim); margin-bottom:6px; font-weight:500; }
+  .ui-field{
+    width:100%; height:44px; border-radius:12px; border:1px solid var(--field-border); background:var(--field-bg); color:var(--text-main); font-size:14px; padding:0 12px; outline:none;
+    box-shadow:0 0 0 0 rgba(0,0,0,0); transition:box-shadow .12s ease, border-color .12s ease;
+  }
+  .ui-field:focus{ border-color:var(--accent-b); box-shadow:0 0 0 3px var(--field-focus-shadow); }
+
+  .gen-btn{
+    border-radius:12px; border:1px solid rgba(0,0,0,.35);
+    background:linear-gradient(90deg, var(--accent-a) 0%, var(--accent-b) 50%, var(--accent-c) 100%);
+    color:#0f172a; font-weight:800; font-size:14px; height:44px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;
+    box-shadow:0 20px 40px rgba(0,0,0,.65), 0 0 30px rgba(16,185,129,.5);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .gen-btn:hover{ transform:translateY(-1px) scale(1.01); box-shadow:0 28px 56px rgba(0,0,0,.8), 0 0 40px rgba(34,211,238,.6); }
+  .gen-btn[disabled]{ opacity:.6; cursor:not-allowed; }
+
+  .table-wrapper{ border-radius:14px; background:var(--table-row-bg); border:1px solid var(--table-row-border); box-shadow: inset 0 0 0 1px var(--panel-inner-line), 0 20px 40px rgba(0,0,0,.6); padding:12px; }
+  table.live-table{ width:100%; border-collapse:separate; border-spacing:0 8px; font-size:13px; color:var(--text-main); }
+  .live-table thead th{ text-align:left; font-weight:600; color:var(--text-dim); padding:0 8px 6px; font-size:12px; }
+  .live-row{ background:rgba(0,0,0,.2); border-radius:10px; border:1px solid var(--panel-border); box-shadow:0 16px 32px rgba(0,0,0,.6); }
+  .live-row td{ padding:10px 8px; font-size:13px; color:var(--text-main); }
+  .ghost{ text-align:center; font-size:13px; color:var(--text-dim); padding:24px 8px; }
+
+  @keyframes heroPop{ 0%{opacity:0;transform:translateY(16px) scale(.96)} 60%{opacity:1;transform:translateY(-2px) scale(1.02)} 100%{opacity:1;transform:translateY(0) scale(1)} }
+  @keyframes panelFloat{ 0%{opacity:0;transform:translateY(20px) scale(.97)} 100%{opacity:1;transform:translateY(0) scale(1)} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="particles-js"></div>
+
+<div class="screen">
+  <div class="wrap">
+
+    <section class="hero-card">
+      <div class="hero-left">
+        <h1>Generar código QR para asistencia</h1>
+        <p class="sub">Define el programa, la ficha y el tiempo. El código se apaga solo al vencer.</p>
+      </div>
+      <div class="hero-right">
+        <button class="theme-mini-btn" id="themeToggle" title="Cambiar tema">🌗</button>
+        <a class="back-btn" href="{% url 'core:dash_instructor' %}">
+          <span>⬅</span><span>Panel</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="main-grid">
+
+      <div class="panel">
+        <div class="panel-inner">
+
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+
+          <h2 class="panel-title"><span style="font-size:16px">📷</span><span>Generar código</span></h2>
+          <p class="panel-sub">El token único y su QR quedan activos solo por el tiempo indicado.</p>
+
+          <div class="qr-area" id="qrBox">
+            <span style="color:var(--text-dim);font-size:13px;">Aún no has generado un código.</span>
+          </div>
+
+          <div class="token-display" id="tokenDisplay">
+            <div class="token-code" id="tokenCode">— — —</div>
+            <div class="token-meta" id="tokenMeta">Ficha — • Programa — • Jornada —</div>
+          </div>
+
+          <div class="time-wrap" id="timeWrap">
+            <div class="time-chip" id="countdownChip">⏱ 00:00</div>
+            <div class="time-meter"><div class="time-fill" id="timeFill" style="width:0%"></div></div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field-block">
+              <label class="field-label" for="programa">Programa</label>
+              <select id="programa" class="ui-field">
+                <option value="">Selecciona programa…</option>
+                <option>Programación de Software</option>
+                <option>Mecatrónica</option>
+                <option>Sistemas</option>
+                <option>Mantenimiento de Equipos de Cómputo</option>
+                <option>Fibra Óptica</option>
+              </select>
+            </div>
+
+            <div class="field-block">
+              <label class="field-label" for="ficha">Ficha</label>
+              <select id="ficha" class="ui-field">
+                <option value="">Selecciona ficha…</option>
+              </select>
+            </div>
+
+            <div class="field-block full-col">
+              <label class="field-label" for="duracion">Límite de tiempo (min)</label>
+              <input id="duracion" type="number" class="ui-field" min="1" value="2">
+            </div>
+
+            <div class="field-block full-col" style="align-self:end;">
+              <button id="genBtn" class="gen-btn"><span>⚡</span><span>Generar código y QR</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-inner">
+          <h2 class="panel-title"><span style="font-size:16px">📡</span><span>Asistencia en tiempo real</span></h2>
+          <p class="panel-sub">Aquí más adelante vas a ver quién marcó asistencia con tu código activo.</p>
+
+          <div class="table-wrapper">
+            <table class="live-table">
+              <thead>
+                <tr><th style="width:48px;">Foto</th><th>Fecha y hora</th><th>Aprendiz</th><th>Estado</th></tr>
+              </thead>
+            </table>
+            <table class="live-table">
+              <tbody id="liveBody">
+                <tr class="live-row"><td class="ghost" colspan="4">Sin registros todavía.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  // Partículas con tema dinámico
+  function particlesConfig(isLight){
+    return {
+      particles:{
+        number:{value:60},
+        color:{value: isLight ? ["#475569","#64748b","#334155"] : ["#10b981","#22d3ee","#6366f1"]},
+        shape:{type:"circle"},
+        opacity:{value: isLight ? .22 : .18},
+        size:{value: isLight ? 2.2 : 3},
+        line_linked:{ enable:true, distance:150, color: isLight ? "#64748b" : "#22d3ee", opacity: isLight ? .22 : .18, width:1 },
+        move:{enable:true,speed:1.6}
+      },
+      interactivity:{ detect_on:"canvas", events:{onhover:{enable:true,mode:"repulse"}}, modes:{repulse:{distance:110}} },
+      retina_detect:true
+    };
+  }
+  function applyParticles(){
+    try{ if(window.pJSDom && pJSDom[0]){ pJSDom[0].pJS.fn.vendors.destroypJS(); pJSDom.length = 0; } }catch(_){}
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    particlesJS("particles-js", particlesConfig(isLight));
+  }
+  applyParticles();
+  document.getElementById('themeToggle')?.addEventListener('click', ()=> setTimeout(applyParticles, 0));
+
+  // Helper LAN
+  function getLanBase(){
+    const ls = localStorage.getItem('LAN_BASE');
+    if (ls) return ls.replace(/\/+$/,'');
+    const origin = window.location.origin;
+    if (origin.includes('127.0.0.1') || origin.includes('localhost')){
+      return 'http://192.168.80.79:8000';
+    }
+    return origin;
+  }
+
+  const qrBoxEl     = document.getElementById('qrBox');
+  const genBtn      = document.getElementById('genBtn');
+  const timeWrap    = document.getElementById('timeWrap');
+  const chipEl      = document.getElementById('countdownChip');
+  const fillEl      = document.getElementById('timeFill');
+  const tokenCodeEl = document.getElementById('tokenCode');
+  const tokenMetaEl = document.getElementById('tokenMeta');
+
+  const fichaSel    = document.getElementById('ficha');
+  const programaSel = document.getElementById('programa');
+
+  // Mapa ficha -> jornada (desde el backend)
+  let fichaJornadaMap = {};
+
+  function updateTokenMeta(){
+    const f = (fichaSel.value || '').trim() || '—';
+    const p = (programaSel.value || '').trim() || '—';
+    const j = fichaJornadaMap[fichaSel.value] || '—';
+    tokenMetaEl.textContent = "Ficha " + f + " • " + p + " • Jornada " + j;
+  }
+
+  async function loadFichasForPrograma(programaVal){
+    fichaSel.innerHTML = '<option value="">Selecciona ficha…</option>';
+    fichaJornadaMap = {};
+    if(!programaVal){
+      updateTokenMeta();
+      return;
+    }
+
+    try{
+      const r = await fetch("{% url 'core:api_fichas_por_programa' %}?programa=" + encodeURIComponent(programaVal));
+      const data = await r.json();
+      if(data.ok && Array.isArray(data.rows)){
+        data.rows.forEach(row => {
+          const ficha = (row.ficha || "").trim();
+          const jornada = (row.jornada || "").trim();
+          if(!ficha) return;
+          const opt = document.createElement('option');
+          opt.value = ficha;
+          opt.textContent = ficha;
+          fichaSel.appendChild(opt);
+          fichaJornadaMap[ficha] = jornada;
+        });
+      }
+    }catch(e){
+      // silencio, no matamos la UI
+    }
+    updateTokenMeta();
+  }
+
+  programaSel.addEventListener('change', ()=>{
+    const programaVal = (programaSel.value || '').trim();
+    loadFichasForPrograma(programaVal);
+  });
+
+  fichaSel.addEventListener('change', updateTokenMeta);
+
+  let tick = null, expireAt = null;
+  function msToClock(ms){
+    if(ms<0) ms=0;
+    const t=Math.floor(ms/1000);
+    const m=Math.floor(t/60), s=t%60;
+    return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+  }
+  function clearTimer(){
+    if (tick){
+      clearInterval(tick);
+      tick=null;
+    }
+  }
+  function expireUI(){
+    clearTimer();
+    const ov = document.createElement('div');
+    ov.className = 'expired-overlay';
+    ov.innerHTML = `<div class="expired-box"><p class="expired-title">Código expirado</p><p class="expired-sub">Genera uno nuevo si la clase sigue abierta.</p></div>`;
+    qrBoxEl.innerHTML = "";
+    qrBoxEl.appendChild(ov);
+    chipEl.textContent = "⏱ 00:00";
+    fillEl.style.width = "0%";
+    genBtn.removeAttribute('disabled');
+  }
+
+  function randomToken(){
+    const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let out="";
+    for(let i=0;i<6;i++) out += chars[Math.floor(Math.random()*chars.length)];
+    return "QR-"+out;
+  }
+
+  // Live table
+  const liveBody = document.getElementById('liveBody');
+  function renderRows(rows){
+    if(!rows.length){
+      liveBody.innerHTML = `<tr class="live-row"><td class="ghost" colspan="4">Sin registros todavía.</td></tr>`;
+      return;
+    }
+    liveBody.innerHTML = rows.map(x => `
+      <tr class="live-row">
+        <td style="width:48px; text-align:center;">—</td>
+        <td>${x.fecha}</td><td>${x.nombre}</td><td>${x.estado === 'Presente' ? '✅' : x.estado}</td>
+      </tr>`).join('');
+  }
+  let _pollTimer = null;
+  async function doPoll(){
+    if(!window._activeCode) return;
+    const url = "{% url 'core:asistencia_list_api' code='__CODE__' %}".replace("__CODE__", window._activeCode);
+    try{
+      const r=await fetch(url);
+      const data=await r.json();
+      renderRows(data.rows||[]);
+    }catch(_){}
+  }
+  function startPolling(){
+    if(_pollTimer) return;
+    doPoll();
+    _pollTimer=setInterval(doPoll,1500);
+  }
+
+  genBtn.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    const fichaVal    = (fichaSel.value || "").trim();
+    const programaVal = (programaSel.value || "").trim();
+    const mins = parseInt((document.getElementById('duracion').value || "0"), 10);
+
+    if(!programaVal){
+      alert("Selecciona un programa.");
+      return;
+    }
+    if(!fichaVal){
+      alert("Selecciona una ficha.");
+      return;
+    }
+    if(!(mins>0)){
+      alert("Pon un tiempo válido en minutos.");
+      return;
+    }
+
+    genBtn.setAttribute('disabled','disabled');
+    clearTimer();
+    qrBoxEl.innerHTML="";
+    timeWrap.style.display="grid";
+
+    const token = randomToken();
+    const jornadaTxt = fichaJornadaMap[fichaVal] || '—';
+    tokenCodeEl.textContent = token;
+    tokenMetaEl.textContent = "Ficha " + fichaVal + " • " + programaVal + " • Jornada " + jornadaTxt;
+
+    const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim() || "#e5e7eb";
+    const base = getLanBase();
+    const scanPattern = "{% url 'core:qr_scan_router' code='__CODE__' %}";
+    const scanUrl = new URL(scanPattern.replace("__CODE__", token), base).toString();
+
+    new QRCode(qrBoxEl, {
+      text: scanUrl,
+      width:220,
+      height:220,
+      colorDark:textColor,
+      colorLight:"transparent",
+      correctLevel:QRCode.CorrectLevel.M
+    });
+
+    const totalMs = mins * 60 * 1000;
+    const start   = Date.now();
+    expireAt = start + totalMs;
+    chipEl.textContent = "⏱ " + msToClock(totalMs);
+    fillEl.style.width = "100%";
+    tick = setInterval(()=>{
+      const left=expireAt-Date.now();
+      chipEl.textContent="⏱ "+msToClock(left);
+      fillEl.style.width=(Math.max(0, Math.min(1,left/totalMs))*100).toFixed(2)+"%";
+      if(left<=0) expireUI();
+    }, 250);
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    try{
+      const r = await fetch("{% url 'core:qr_generar_api' %}", {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify({
+          ficha: fichaVal,
+          programa: programaVal,
+          token: token,
+          duracion: mins
+        })
+      });
+      const data = await r.json();
+      if(!data.ok){
+        alert("Error guardando en base: " + (data.msg || "desconocido"));
+      }
+    }catch(_){
+      alert("Error de red guardando en base.");
+    }
+
+    window._activeCode = token;
+    startPolling();
+  });
+</script>
+{% endblock %}

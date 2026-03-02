@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Créditos{% endblock %}
+
+{% block content %}
+<div id="particles-js" class="particles-layer"></div>
+
+<div class="page-screen">
+  <div class="credits-card">
+    <h2>🎬 Créditos</h2>
+
+    <div class="credit-item" style="animation-delay:.1s">
+      <div class="credit-role"><i class="fas fa-laptop-code"></i> Aprendiz</div>
+      <div class="credit-name">Daniel Gamboa</div>
+    </div>
+
+    <div class="credit-item" style="animation-delay:.2s">
+      <div class="credit-role"><i class="fas fa-paint-brush"></i> Aprendiz</div>
+      <div class="credit-name">Amaury Quiñonez</div>
+    </div>
+
+    <div class="credit-item" style="animation-delay:.3s">
+      <div class="credit-role"><i class="fas fa-vial"></i> Aprendiz</div>
+      <div class="credit-name">Camilo Chamorro</div>
+    </div>
+
+    <div class="credit-item" style="animation-delay:.4s">
+      <div class="credit-role"><i class="fas fa-clipboard-list"></i> Aprendiz</div>
+      <div class="credit-name">Jhoel Luna</div>
+    </div>
+
+    <div class="credit-item" style="animation-delay:.5s">
+      <div class="credit-role"><i class="fas fa-tools"></i> Aprendiz</div>
+      <div class="credit-name">Edwin Santiago</div>
+    </div>
+
+    <p class="thanks">🙏 Gracias a todos los que apoyaron este proyecto y contribuyeron a su éxito.</p>
+    <a href="{% url 'core:contacto' %}">📩 Contáctanos</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block head_extra %}
+<style>
+  .particles-layer{position:fixed; inset:0; background:#1a1a1a; z-index:0;}
+  .page-screen{
+    position:relative; z-index:1;
+    min-height:calc(100vh - 160px);
+    display:flex; align-items:center; justify-content:center;
+    padding:32px 20px;
+  }
+  .credits-card{
+    background:rgba(255,255,255,.07); backdrop-filter:blur(18px);
+    border-radius:20px; padding:22px 22px;
+    width:min(420px, 92vw);
+    max-height: clamp(360px, 70vh, 520px);   /* 👈 límite de altura */
+    overflow:auto;                            /* 👈 scroll interno si se pasa */
+    box-shadow:0 12px 30px rgba(0,0,0,.35); color:#fff; text-align:center;
+  }
+  .credits-card::-webkit-scrollbar{ width:8px; }
+  .credits-card::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.15); border-radius:8px; }
+
+  .credits-card h2{ font-size:26px; margin-bottom:18px; color:#f0f0f0; text-shadow:0 0 12px rgba(255,255,255,.5); }
+  .credit-item{
+    background:rgba(255,255,255,.05); border-radius:12px; margin-bottom:10px; padding:10px 14px;
+    display:flex; justify-content:space-between; align-items:center;
+    opacity:0; transform:translateY(24px) rotateX(10deg);
+    transition: transform .35s ease, box-shadow .3s ease; animation:fadeInUp .6s forwards;
+  }
+  .credit-item:hover{ transform:translateY(-2px) rotateX(0deg) scale(1.01); box-shadow:0 8px 16px rgba(52,152,219,.45); }
+  .credit-role{display:flex; align-items:center; font-size:14px; color:#ccc;}
+  .credit-role i{margin-right:8px; font-size:16px; color:#3498db;}
+  .credit-name{font-weight:600; color:#fff; font-size:14px;}
+  .thanks{margin-top:10px; font-size:12px; color:#ccc; line-height:1.4;}
+  .credits-card a{
+    display:inline-block; margin-top:12px; padding:10px 16px; border-radius:22px;
+    background:linear-gradient(90deg,#3498db,#2c3e50); color:#fff; font-weight:500; text-decoration:none; transition:.25s;
+    box-shadow:0 4px 15px rgba(52,152,219,.5);
+  }
+  .credits-card a:hover{ transform:scale(1.04); background:linear-gradient(90deg,#2980b9,#1a252f); }
+
+  @keyframes fadeInUp{ to{ opacity:1; transform:translateY(0) rotateX(0deg); } }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+particlesJS("particles-js", {
+  particles:{ number:{value:60}, color:{value:["#3498db","#2c3e50","#1a1a1a"]},
+  shape:{type:"circle"}, opacity:{value:.2}, size:{value:3},
+  line_linked:{enable:true,distance:150,color:"#3498db",opacity:.2,width:1},
+  move:{enable:true,speed:2}},
+  interactivity:{ detect_on:"canvas", events:{ onhover:{enable:true,mode:"repulse"} },
+  modes:{ repulse:{ distance:100 } } }, retina_detect:true
+});
+</script>
+{% endblock %}
